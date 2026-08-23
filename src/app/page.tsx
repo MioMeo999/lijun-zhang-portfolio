@@ -252,6 +252,12 @@ function ModernImage({
 export default function InkResonancePage() {
   const siteRef = useRef<HTMLDivElement>(null)
   const scrollProgressRef = useRef<HTMLSpanElement>(null)
+  const memoirCloseRef = useRef<HTMLButtonElement>(null)
+  const memoirTriggerRef = useRef<HTMLElement | null>(null)
+  const pressVideoCloseRef = useRef<HTMLButtonElement>(null)
+  const pressVideoTriggerRef = useRef<HTMLElement | null>(null)
+  const qrCloseRef = useRef<HTMLButtonElement>(null)
+  const qrTriggerRef = useRef<HTMLElement | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [selectedEngagement, setSelectedEngagement] = useState<(typeof engagementArchive)[number] | null>(null)
   const [activeSection, setActiveSection] = useState('story')
@@ -297,14 +303,21 @@ export default function InkResonancePage() {
         ].filter(Boolean).join(' ')}
         key={item.id}
         style={cardStyle}
+        onClick={(event) => {
+          if (event.target instanceof Element && event.target.closest('button')) return
+          memoirTriggerRef.current = null
+          runViewTransition(() => setSelectedEngagement(item))
+        }}
       >
         <span className={styles.archiveMemoirPin} aria-hidden="true" />
-        <a
-          href={item.link}
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          type="button"
           className={styles.archiveMemoirPhoto}
-          aria-label={`Read the report for ${item.event}`}
+          aria-label={`Open details for ${item.event}`}
+          onClick={(event) => {
+            memoirTriggerRef.current = event.currentTarget
+            runViewTransition(() => setSelectedEngagement(item))
+          }}
           style={photoStyle}
         >
           <Image
@@ -312,18 +325,21 @@ export default function InkResonancePage() {
             alt={item.event}
             fill
             sizes="(max-width: 560px) 88vw, (max-width: 800px) 48vw, (max-width: 1050px) 42vw, 31vw"
-            loading={index < 6 ? 'eager' : 'lazy'}
+            loading={index < 2 ? 'eager' : 'lazy'}
             style={{ objectPosition: archiveImagePositions[item.id] ?? 'center' }}
           />
           <span className={styles.archiveReportCue}>
-            Read report <ArrowUpRight size={12} />
+            Open details <ArrowUpRight size={12} />
           </span>
-        </a>
+        </button>
         <button
           type="button"
           className={styles.archiveMemoirCaption}
-          onClick={() => runViewTransition(() => setSelectedEngagement(item))}
-          aria-label={`Open memory details: ${item.event}`}
+          onClick={(event) => {
+            memoirTriggerRef.current = event.currentTarget
+            runViewTransition(() => setSelectedEngagement(item))
+          }}
+          aria-label={`Open details for ${item.event}`}
         >
           <span className={styles.archiveMemoirMeta}>
             <time dateTime={item.date}>{formatEngagementDate(item.date)}</time>
@@ -359,6 +375,7 @@ export default function InkResonancePage() {
   useEffect(() => {
     if (!selectedEngagement) return
 
+    const trigger = memoirTriggerRef.current
     const previousOverflow = document.body.style.overflow
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -367,45 +384,59 @@ export default function InkResonancePage() {
     }
 
     document.body.style.overflow = 'hidden'
+    memoirCloseRef.current?.focus()
     window.addEventListener('keydown', closeOnEscape)
 
     return () => {
       document.body.style.overflow = previousOverflow
       window.removeEventListener('keydown', closeOnEscape)
+      if (trigger?.isConnected) {
+        window.requestAnimationFrame(() => trigger.focus())
+      }
     }
   }, [selectedEngagement])
 
   useEffect(() => {
     if (!activePressVideoId) return
 
+    const trigger = pressVideoTriggerRef.current
     const previousOverflow = document.body.style.overflow
     const closePressVideoOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setActivePressVideoId(null)
     }
 
     document.body.style.overflow = 'hidden'
+    pressVideoCloseRef.current?.focus()
     window.addEventListener('keydown', closePressVideoOnEscape)
 
     return () => {
       document.body.style.overflow = previousOverflow
       window.removeEventListener('keydown', closePressVideoOnEscape)
+      if (trigger?.isConnected) {
+        window.requestAnimationFrame(() => trigger.focus())
+      }
     }
   }, [activePressVideoId])
 
   useEffect(() => {
     if (!activeQrId) return
 
+    const trigger = qrTriggerRef.current
     const previousOverflow = document.body.style.overflow
     const closeQrOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setActiveQrId(null)
     }
 
     document.body.style.overflow = 'hidden'
+    qrCloseRef.current?.focus()
     window.addEventListener('keydown', closeQrOnEscape)
 
     return () => {
       document.body.style.overflow = previousOverflow
       window.removeEventListener('keydown', closeQrOnEscape)
+      if (trigger?.isConnected) {
+        window.requestAnimationFrame(() => trigger.focus())
+      }
     }
   }, [activeQrId])
 
@@ -554,7 +585,7 @@ export default function InkResonancePage() {
       const headerHeight = root.querySelector('header')?.getBoundingClientRect().height ?? 0
       const targetY = Math.max(0, target.getBoundingClientRect().top + startY - headerHeight - 14)
       const distance = targetY - startY
-      const duration = Math.min(1450, Math.max(900, 720 + Math.abs(distance) * .12))
+      const duration = Math.min(960, Math.max(620, 560 + Math.abs(distance) * .08))
       const startTime = window.performance.now()
 
       if (window.location.hash !== anchor.hash) {
@@ -772,7 +803,7 @@ export default function InkResonancePage() {
         </nav>
 
         <a href="#contact" className={styles.headerCta}>
-          Invite me to play <ArrowUpRight size={15} />
+          Collaborate <ArrowUpRight size={15} />
         </a>
 
         <button
@@ -780,13 +811,14 @@ export default function InkResonancePage() {
           className={styles.menuButton}
           onClick={() => setMenuOpen((value) => !value)}
           aria-expanded={menuOpen}
+          aria-controls="mobile-navigation"
           aria-label={menuOpen ? 'Close navigation' : 'Open navigation'}
         >
           {menuOpen ? <X size={22} /> : <Menu size={22} />}
         </button>
 
         {menuOpen && (
-          <nav className={styles.mobileNav} aria-label="Mobile navigation">
+          <nav id="mobile-navigation" className={styles.mobileNav} aria-label="Mobile navigation">
             {navItems.map((item) => (
               <a
                 href={item.href}
@@ -873,7 +905,7 @@ export default function InkResonancePage() {
               alt=""
               fill
               sizes="100vw"
-              loading="eager"
+              loading="lazy"
             />
           </div>
           <div className={styles.sectionMarker} data-reveal="marker">
@@ -967,14 +999,14 @@ export default function InkResonancePage() {
               href={researchReportUrl}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Read the Sonic Belonging project report"
+              aria-label="Read the Sonic Belonging project report (opens in a new tab)"
             >
               <Image
                 src="/images/research/sonic-belonging-poster.png"
                 alt="Sonic Belonging project report poster"
                 fill
                 sizes="(max-width: 800px) 75vw, 27vw"
-                loading="eager"
+                loading="lazy"
               />
               <span className={styles.researchPosterAction}>
                 Read report <ArrowUpRight size={13} />
@@ -1010,6 +1042,7 @@ export default function InkResonancePage() {
               href={researchReportUrl}
               target="_blank"
               rel="noopener noreferrer"
+              aria-label="Read the Sonic Belonging project report (opens in a new tab)"
             >
               Read the project report <ArrowUpRight size={17} />
             </a>
@@ -1088,6 +1121,7 @@ export default function InkResonancePage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className={index === 0 ? styles.videoLead : ''}
+                aria-label={`Watch ${video.title} on YouTube (opens in a new tab)`}
               >
                 <div className={styles.videoThumb}>
                   <img
@@ -1124,6 +1158,7 @@ export default function InkResonancePage() {
                   href={`https://www.youtube.com/watch?v=${video.youtubeId}`}
                   target="_blank"
                   rel="noopener noreferrer"
+                  aria-label={`Watch ${video.title} on YouTube (opens in a new tab)`}
                 >
                   <div className={styles.videoThumb}>
                     <img
@@ -1171,6 +1206,8 @@ export default function InkResonancePage() {
                 name="press-story"
                 id={`press-control-${item.id}`}
                 checked={activePressId === item.id}
+                tabIndex={-1}
+                aria-hidden="true"
                 onChange={() => {
                   setActivePressId(item.id)
                   setActivePressVideoId(null)
@@ -1178,11 +1215,41 @@ export default function InkResonancePage() {
                 key={`control-${item.id}`}
               />
             ))}
-            <div className={styles.pressTabs} aria-label="Media coverage">
+            <div className={styles.pressTabs} role="tablist" aria-label="Media coverage">
               {pressItems.map((item) => (
                 <label
                   htmlFor={`press-control-${item.id}`}
+                  id={`press-tab-${item.id}`}
+                  role="tab"
+                  tabIndex={activePressId === item.id ? 0 : -1}
+                  aria-selected={activePressId === item.id}
+                  aria-controls={`press-${item.id}`}
                   className={activePressId === item.id ? styles.pressTabActive : undefined}
+                  onKeyDown={(event) => {
+                    const currentIndex = pressItems.findIndex((pressItem) => pressItem.id === item.id)
+                    const isForward = event.key === 'ArrowRight' || event.key === 'ArrowDown'
+                    const isBackward = event.key === 'ArrowLeft' || event.key === 'ArrowUp'
+
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault()
+                      setActivePressId(item.id)
+                      setActivePressVideoId(null)
+                      return
+                    }
+
+                    if (!isForward && !isBackward) return
+
+                    event.preventDefault()
+                    const nextIndex = isForward
+                      ? (currentIndex + 1) % pressItems.length
+                      : (currentIndex - 1 + pressItems.length) % pressItems.length
+                    const nextItem = pressItems[nextIndex]
+                    setActivePressId(nextItem.id)
+                    setActivePressVideoId(null)
+                    window.requestAnimationFrame(() => {
+                      document.getElementById(`press-tab-${nextItem.id}`)?.focus()
+                    })
+                  }}
                   key={item.id}
                 >
                   <span className={styles.pressLogo}>
@@ -1219,7 +1286,10 @@ export default function InkResonancePage() {
                         <button
                           type="button"
                           className={styles.pressVideoTrigger}
-                          onClick={() => setActivePressVideoId(item.id)}
+                          onClick={(event) => {
+                            pressVideoTriggerRef.current = event.currentTarget
+                            setActivePressVideoId(item.id)
+                          }}
                           aria-label={`Play ${item.name} coverage video`}
                         >
                           <Image
@@ -1245,7 +1315,7 @@ export default function InkResonancePage() {
                           target="_blank"
                           rel="noopener noreferrer"
                           className={styles.pressEditorialLink}
-                          aria-label={`Read the ${item.name} news report`}
+                          aria-label={`Read the ${item.name} news report (opens in a new tab)`}
                         >
                           <Image
                             src={item.posterUrl || item.screenshotUrl || ''}
@@ -1286,6 +1356,7 @@ export default function InkResonancePage() {
                         href={item.link}
                         target="_blank"
                         rel="noopener noreferrer"
+                        aria-label={`Read the ${item.name} coverage (opens in a new tab)`}
                       >
                         Read the coverage <ArrowUpRight size={15} />
                       </a>
@@ -1305,7 +1376,7 @@ export default function InkResonancePage() {
               className={`${styles.pressVideoModal} ${styles.pressVideoModalOpen}`}
               role="dialog"
               aria-modal="true"
-              aria-label={`${activePressVideo.name} coverage video`}
+              aria-labelledby="press-video-title"
             >
               <button
                 type="button"
@@ -1315,8 +1386,8 @@ export default function InkResonancePage() {
               />
               <div className={styles.pressVideoPanel}>
                 <div className={styles.pressVideoHead}>
-                  <span>{activePressVideo.name} · Coverage clip</span>
-                  <button type="button" onClick={() => setActivePressVideoId(null)} aria-label="Close video">
+                  <span id="press-video-title">{activePressVideo.name} · Coverage clip</span>
+                  <button ref={pressVideoCloseRef} type="button" onClick={() => setActivePressVideoId(null)} aria-label="Close video">
                     <X size={20} />
                   </button>
                 </div>
@@ -1381,6 +1452,7 @@ export default function InkResonancePage() {
                   aria-expanded={activeQrId === social.id}
                   onClick={(event) => {
                     event.preventDefault()
+                    qrTriggerRef.current = event.currentTarget
                     setActiveQrId(social.id)
                   }}
                 >
@@ -1402,7 +1474,7 @@ export default function InkResonancePage() {
       </main>
 
       {selectedEngagement && (
-        <div className={styles.memoirModal} role="dialog" aria-modal="true" aria-label={selectedEngagement.event}>
+        <div className={styles.memoirModal} role="dialog" aria-modal="true" aria-labelledby="memoir-modal-title">
           <button
             type="button"
             className={styles.memoirModalBackdrop}
@@ -1413,6 +1485,7 @@ export default function InkResonancePage() {
             <button
               type="button"
               className={styles.memoirModalClose}
+              ref={memoirCloseRef}
               onClick={() => runViewTransition(() => setSelectedEngagement(null))}
               aria-label="Close memory"
             >
@@ -1435,11 +1508,16 @@ export default function InkResonancePage() {
               <span>
                 {formatEngagementDate(selectedEngagement.date)} · {selectedEngagement.tags.join(' · ')}
               </span>
-              <h3>{selectedEngagement.event}</h3>
+              <h3 id="memoir-modal-title">{selectedEngagement.event}</h3>
               <p>{describeEngagement(selectedEngagement.tags)}</p>
               <small>{selectedEngagement.venue}</small>
               {selectedEngagement.link && (
-                <a href={selectedEngagement.link} target="_blank" rel="noopener noreferrer">
+                <a
+                  href={selectedEngagement.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Read the full event for ${selectedEngagement.event} (opens in a new tab)`}
+                >
                   Read the full event <ArrowUpRight size={15} />
                 </a>
               )}
@@ -1453,7 +1531,7 @@ export default function InkResonancePage() {
           className={styles.qrModal}
           role="dialog"
           aria-modal="true"
-          aria-label={`${activeQr.name} QR code`}
+          aria-labelledby="qr-modal-title"
         >
           <button
             type="button"
@@ -1465,9 +1543,9 @@ export default function InkResonancePage() {
             <div className={styles.qrModalHead}>
               <div>
                 <span>CONNECT / {activeQr.id.toUpperCase()}</span>
-                <strong>{activeQr.name}</strong>
+                <strong id="qr-modal-title">{activeQr.name}</strong>
               </div>
-              <button type="button" onClick={() => setActiveQrId(null)} aria-label="Close" autoFocus>
+              <button ref={qrCloseRef} type="button" onClick={() => setActiveQrId(null)} aria-label="Close">
                 <X size={20} />
               </button>
             </div>
