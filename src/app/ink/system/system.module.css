@@ -1,0 +1,341 @@
+/* The reference sheet for the ink system. It borrows the tokens from
+   ink.module.css and adds only what a specimen page needs. */
+
+.sheet {
+  padding-block: clamp(2.6rem, 7vh, 5rem) clamp(4rem, 12vh, 8rem);
+}
+
+.masthead {
+  grid-column: 2 / span 8;
+  margin-bottom: clamp(3rem, 9vh, 6rem);
+}
+
+.mastheadTitle {
+  margin: 0 0 1.2rem;
+  color: var(--ink-1);
+  font-family: var(--ink-display), Georgia, serif;
+  font-size: clamp(2.4rem, 6vw, 4.6rem);
+  font-weight: 300;
+  line-height: 1.02;
+  letter-spacing: -.018em;
+}
+
+.mastheadTitle em { font-style: italic; }
+
+.block {
+  grid-column: 2 / span 10;
+  margin-bottom: clamp(3rem, 8vh, 5.5rem);
+}
+
+.blockNarrow { grid-column: 2 / span 7; }
+
+.blockHead {
+  display: flex;
+  margin-bottom: clamp(1.6rem, 4vh, 2.6rem);
+  align-items: baseline;
+  gap: 1.2rem;
+  border-bottom: 1px solid var(--ink-5);
+  padding-bottom: .9rem;
+  flex-wrap: wrap;
+}
+
+.blockHead h2 {
+  margin: 0;
+  color: var(--ink-1);
+  font-family: var(--ink-display), Georgia, serif;
+  font-size: clamp(1.3rem, 2.2vw, 1.8rem);
+  font-weight: 400;
+}
+
+/* The axioms table: the idea on the left, what it became on the right. The
+   whole exploration is really just this list made buildable. */
+.axioms {
+  display: grid;
+  gap: 0;
+}
+
+.axiom {
+  display: grid;
+  border-bottom: 1px solid var(--ink-5);
+  padding: 1.5rem 0;
+  gap: 1.2rem 2.4rem;
+  grid-template-columns: 2.5rem minmax(0, 1fr) minmax(0, 1.35fr);
+  align-items: start;
+}
+
+.axiom:last-child { border-bottom: 0; }
+
+.axiomNumber {
+  color: var(--ink-4);
+  font-family: var(--ink-micro), system-ui, sans-serif;
+  font-size: .625rem;
+  letter-spacing: .2em;
+  padding-top: .35rem;
+}
+
+.axiomIdea {
+  margin: 0;
+  color: var(--ink-1);
+  font-family: var(--ink-display), Georgia, serif;
+  font-size: clamp(1.15rem, 1.8vw, 1.5rem);
+  font-weight: 400;
+  line-height: 1.24;
+}
+
+.axiomIdea small {
+  display: block;
+  margin-top: .35rem;
+  color: var(--ink-4);
+  font-family: 'Songti SC', 'Source Han Serif SC', 'Noto Serif CJK SC', 'SimSun', serif;
+  font-size: .85rem;
+  letter-spacing: .2em;
+}
+
+.axiomMechanic {
+  margin: 0;
+  color: var(--ink-2);
+  font-size: .92rem;
+  font-weight: 300;
+  line-height: 1.8;
+}
+
+/* Ink ramp */
+.ramp {
+  display: grid;
+  gap: 1px;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.rampStep {
+  display: grid;
+  align-content: end;
+  gap: .5rem;
+  min-height: clamp(120px, 18vh, 190px);
+  padding: 1rem .9rem;
+}
+
+.rampStep b {
+  font-family: 'Songti SC', 'Source Han Serif SC', 'Noto Serif CJK SC', 'SimSun', serif;
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: .16em;
+}
+
+.rampStep small {
+  font-family: var(--ink-micro), system-ui, sans-serif;
+  font-size: .6rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  opacity: .78;
+}
+
+.minerals {
+  display: grid;
+  margin-top: 2.4rem;
+  gap: 1px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.mineral {
+  display: grid;
+  align-content: end;
+  gap: .5rem;
+  min-height: clamp(96px, 14vh, 140px);
+  padding: .9rem;
+  color: #f7f4ec;
+}
+
+.mineral b {
+  font-family: 'Songti SC', 'Source Han Serif SC', 'Noto Serif CJK SC', 'SimSun', serif;
+  font-size: .95rem;
+  font-weight: 400;
+  letter-spacing: .16em;
+}
+
+.mineral small {
+  font-family: var(--ink-micro), system-ui, sans-serif;
+  font-size: .6rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  opacity: .82;
+}
+
+.mineralNote {
+  grid-column: 1 / -1;
+  margin: 1.2rem 0 0;
+  color: var(--ink-3);
+  font-size: .84rem;
+  font-style: italic;
+}
+
+/* Type specimen */
+.specimen {
+  display: grid;
+  gap: clamp(1.8rem, 4vh, 2.8rem);
+}
+
+.specimenRow {
+  display: grid;
+  gap: .8rem 2.4rem;
+  grid-template-columns: 10rem minmax(0, 1fr);
+  align-items: baseline;
+}
+
+.specimenLabel {
+  color: var(--ink-4);
+  font-family: var(--ink-micro), system-ui, sans-serif;
+  font-size: .625rem;
+  letter-spacing: .18em;
+  line-height: 1.7;
+  text-transform: uppercase;
+}
+
+.specimenLabel span {
+  display: block;
+  color: var(--ink-3);
+  letter-spacing: .1em;
+  text-transform: none;
+}
+
+/* The three dilutions, side by side */
+.dilutions {
+  display: grid;
+  gap: clamp(18px, 2.4vw, 34px);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.dilution {
+  display: grid;
+  align-content: start;
+  gap: .9rem;
+  border-top: 1px solid var(--ink-4);
+  padding-top: 1.4rem;
+}
+
+.dilutionName {
+  display: flex;
+  align-items: baseline;
+  gap: .7rem;
+  color: var(--ink-1);
+  font-family: 'Songti SC', 'Source Han Serif SC', 'Noto Serif CJK SC', 'SimSun', serif;
+  font-size: 1.35rem;
+  letter-spacing: .1em;
+}
+
+.dilutionName i {
+  font-family: var(--ink-micro), system-ui, sans-serif;
+  font-size: .625rem;
+  font-style: normal;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.dilutionSwatch {
+  height: 84px;
+  border: 1px solid var(--ink-5);
+}
+
+.dilutionList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: .5rem;
+}
+
+.dilutionList li {
+  color: var(--ink-2);
+  font-size: .86rem;
+  font-weight: 300;
+  line-height: 1.65;
+  padding-left: 1rem;
+  position: relative;
+}
+
+.dilutionList li::before {
+  position: absolute;
+  top: .68em;
+  left: 0;
+  width: 4px;
+  height: 1px;
+  background: var(--ink-4);
+  content: '';
+}
+
+/* Motion: the attack and release pair, drawn */
+.curves {
+  display: grid;
+  gap: clamp(18px, 3vw, 40px);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+.curve {
+  display: grid;
+  gap: 1rem;
+}
+
+.curve svg {
+  width: 100%;
+  height: auto;
+  border-bottom: 1px solid var(--ink-5);
+}
+
+/* What was deliberately left out */
+.refusals {
+  display: grid;
+  gap: 1px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  background: var(--ink-5);
+  border: 1px solid var(--ink-5);
+}
+
+.refusal {
+  display: grid;
+  align-content: start;
+  gap: .6rem;
+  background: var(--paper);
+  padding: 1.4rem 1.5rem;
+}
+
+.refusal b {
+  color: var(--ink-1);
+  font-family: var(--ink-display), Georgia, serif;
+  font-size: 1.08rem;
+  font-weight: 400;
+}
+
+.refusal span {
+  color: var(--ink-2);
+  font-size: .86rem;
+  font-weight: 300;
+  line-height: 1.75;
+}
+
+.backLinks {
+  grid-column: 2 / span 10;
+  display: flex;
+  gap: 2rem;
+  border-top: 1px solid var(--ink-5);
+  padding-top: 1.6rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 1080px) {
+  .masthead,
+  .block,
+  .blockNarrow,
+  .backLinks { grid-column: 1 / span 12; }
+}
+
+@media (max-width: 860px) {
+  .axiom { grid-template-columns: 2rem minmax(0, 1fr); }
+  .axiomMechanic { grid-column: 2; }
+  .ramp { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .minerals { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .dilutions,
+  .curves,
+  .refusals { grid-template-columns: 1fr; }
+  .specimenRow { grid-template-columns: 1fr; }
+}

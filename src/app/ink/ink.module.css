@@ -1,0 +1,2151 @@
+/* ============================================================================
+ * INK & RESONANCE — visual exploration
+ *
+ * Not ink painting placed on a website. A website built out of what ink
+ * painting knows. Five working axioms, each one turned into a mechanic:
+ *
+ *   1. Void is content            → the empty columns move down the page
+ *   2. The brush defines the edge → nothing is boxed; edges dissolve
+ *   3. Movement is suggested      → things arrive at density, they don't slide
+ *   4. Accent through mineral     → colour only where the ink is thin
+ *   5. Restraint creates resonance→ fewer sizes, more silence around each
+ *
+ * And one taken from the instrument rather than the brush:
+ *
+ *   6. 韻 — the note is the pluck, the music is the decay. Every interaction
+ *      attacks quickly and releases slowly.
+ *
+ * Three tones are three dilutions of one ink, not three websites:
+ *   qing 淡墨  light ink      — maximum restraint
+ *   nong 潑墨  poured ink     — atmospheric (default)
+ *   po   破墨  broken ink     — editorial, asymmetric, experimental
+ * ========================================================================= */
+
+/* --- 1. TOKENS ----------------------------------------------------------- */
+
+/* The paper has to run past the page, or an overscroll shows white underneath
+   it and the illusion of a single sheet breaks. */
+:global(html) {
+  background: #f3f0e8;
+}
+
+.page {
+  /* 墨分五色 — ink divides into five tones. A real ramp, not a grey scale:
+     each step warms slightly as it thins, the way diluted ink does on paper. */
+  --ink-0: #16150f;   /* 焦墨 burnt   — display only, used sparingly */
+  --ink-1: #2b2820;   /* 濃墨 thick   — headings */
+  --ink-2: #4c483d;   /* 重墨 heavy   — body */
+  --ink-3: #7a7568;   /* 淡墨 light   — secondary, annotation */
+  --ink-4: #a8a394;   /* 清墨 clear   — hairlines, micro labels */
+  --ink-5: #cdc8b9;   /* 水   water   — faintest rules */
+
+  --paper: #f3f0e8;
+  --paper-lit: #fbf9f4;
+  --paper-deep: #e8e3d7;
+
+  /* Mineral pigments. Ground stone, not screen colour. Their total area on
+     any screen stays under roughly five percent — that is the whole point. */
+  --azurite: #3b566a;    /* 石青 */
+  --malachite: #5f7568;  /* 石綠 */
+  --ochre: #a07f4c;      /* 赭石 */
+  --cinnabar: #9c3a26;   /* 朱砂 — the seal, and almost nothing else */
+
+  /* Atmosphere strength. The tones move these, not the hues. */
+  --wash: 1;
+  --grain: .036;
+  --mist: 1;
+  --rule: .5;
+  --tint: 1;
+  --step: 1;           /* how far the stepped elements step */
+
+  /* Composition */
+  --scale: 1;
+  --breath: clamp(84px, 13vh, 176px);
+  --gutter: max(26px, 5.2vw);
+  --measure: 60ch;
+  --drift: 0px;        /* how far the grid lets a section wander off-axis */
+
+  /* 韻 — attack and release. Everything on the page uses this pair. */
+  --attack: 210ms;
+  --release: 880ms;
+  --ease-in-ink: cubic-bezier(.22, .86, .28, 1);
+  --ease-release: cubic-bezier(.18, .52, .08, 1);
+
+  position: relative;
+  min-height: 100vh;
+  overflow-x: clip;
+  background: var(--paper);
+  color: var(--ink-2);
+  font-family: var(--ink-reading), Georgia, serif;
+  font-weight: 300;
+  font-synthesis-weight: none;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.page,
+.page *,
+.page *::before,
+.page *::after {
+  box-sizing: border-box;
+}
+
+.page a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.page ::selection {
+  background: rgba(156, 58, 38, .14);
+}
+
+.page :focus-visible {
+  outline: 1px solid var(--ink-2);
+  outline-offset: 4px;
+}
+
+/* --- 1b. THE THREE DILUTIONS -------------------------------------------- */
+
+/* 淡墨 — the brush barely loaded. Everything thins: the paper goes closer to
+   silk, the washes almost vanish, the darkest ink never reaches black, and the
+   rhythm evens out. This is the direction that would survive a print catalogue. */
+.page[data-tone='qing'] {
+  --ink-0: #24221a;
+  --ink-1: #38352c;
+  --ink-2: #555146;
+  --ink-3: #85806f;
+  --ink-4: #b3ae9f;
+  --ink-5: #dcd8cc;
+  --paper: #faf8f3;
+  --paper-lit: #fefdfa;
+  --paper-deep: #f1eee6;
+  --wash: .14;
+  --grain: .016;
+  --mist: .2;
+  --rule: .3;
+  --tint: 0;
+  --step: .45;
+  --scale: .93;
+  --measure: 62ch;
+  --drift: 0px;
+}
+
+/* 潑墨 — ink poured and allowed to find its own shape. The default. */
+.page[data-tone='nong'] {
+  --wash: 1;
+  --grain: .036;
+  --mist: 1;
+  --rule: .5;
+  --tint: 1;
+  --step: 1;           /* how far the stepped elements step */
+  --scale: 1;
+  --drift: 0px;
+}
+
+/* 破墨 — wet ink broken into dry, dark against light. Harder edges, bigger
+   jumps between sizes, the grid allowed to go off-axis. The gallery version. */
+.page[data-tone='po'] {
+  --ink-0: #100f0a;
+  --ink-1: #1e1c15;
+  --paper: #eeeae0;
+  --paper-lit: #f8f5ed;
+  --paper-deep: #ded8c9;
+  --wash: .5;
+  --grain: .058;
+  --mist: .28;
+  --rule: 1;
+  --tint: 1.15;
+  --step: 1.7;
+  --scale: 1.13;
+  --measure: 52ch;
+  --drift: clamp(12px, 3vw, 62px);
+}
+
+/* Each dilution changes more than its values. Light ink crops cleanly and sits
+   square on the grid; broken ink tears its edges, pushes off-axis, and lets a
+   little more cinnabar through. */
+
+.page[data-tone='qing'] .inkEdge {
+  -webkit-mask-image:
+    linear-gradient(180deg, #000 0%, #000 84%, transparent 100%),
+    linear-gradient(90deg, #000 0%, #000 92%, transparent 100%);
+  mask-image:
+    linear-gradient(180deg, #000 0%, #000 84%, transparent 100%),
+    linear-gradient(90deg, #000 0%, #000 92%, transparent 100%);
+}
+
+.page[data-tone='qing'] .heroFigure {
+  aspect-ratio: 5 / 6;
+}
+
+.page[data-tone='po'] .inkEdge {
+  -webkit-mask-image:
+    linear-gradient(176deg, transparent 0%, #000 24%, #000 52%, transparent 100%),
+    linear-gradient(95deg, transparent 0%, #000 26%, #000 68%, transparent 100%);
+  mask-image:
+    linear-gradient(176deg, transparent 0%, #000 24%, #000 52%, transparent 100%),
+    linear-gradient(95deg, transparent 0%, #000 26%, #000 68%, transparent 100%);
+}
+
+/* Broken ink comes off its axis: the figure lifts out of its row and runs off
+   the right edge of the sheet, and the words take a wider measure. */
+.page[data-tone='po'] .heroFigure {
+  grid-column: 8 / -1;
+  align-self: start;
+  margin-top: clamp(1rem, 5vh, 4rem);
+  margin-right: calc(var(--gutter) * -1);
+}
+
+.page[data-tone='po'] .heroWords {
+  grid-column: 2 / span 6;
+}
+
+.page[data-tone='po'] .index::before {
+  background: var(--cinnabar);
+  opacity: .7;
+}
+
+.page[data-tone='po'] .displayXL,
+.page[data-tone='po'] .displayL {
+  letter-spacing: -.024em;
+}
+
+.page[data-tone='po'] .storyBody { grid-column: 6 / span 6; }
+.page[data-tone='po'] .videosHead { grid-column: 4 / span 6; }
+.page[data-tone='po'] .researchCopy { grid-column: 7 / span 6; }
+
+/* --- 2. ATMOSPHERE ------------------------------------------------------- */
+
+/* Paper grain. Fractal noise generated in the stylesheet, never a photograph
+   of paper. It sits under everything at a strength you would only notice if
+   it were taken away. */
+.page::before {
+  position: fixed;
+  z-index: 0;
+  inset: 0;
+  opacity: var(--grain);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+  content: '';
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}
+
+/* Ink washes. Three overlapping ellipses of very dilute ink, blurred past the
+   point of being readable as shapes — they register as depth in the paper
+   rather than as marks on it. */
+.washField {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  opacity: calc(var(--wash) * .92);
+}
+
+.washTop {
+  top: -14vh;
+  right: -10vw;
+  width: 74vw;
+  height: 82vh;
+  background:
+    radial-gradient(58% 52% at 62% 38%, rgba(43, 40, 32, .2), rgba(43, 40, 32, .08) 46%, transparent 78%),
+    radial-gradient(44% 60% at 34% 62%, rgba(59, 86, 106, .13), rgba(59, 86, 106, .05) 44%, transparent 76%),
+    radial-gradient(38% 34% at 78% 74%, rgba(160, 127, 76, .11), rgba(160, 127, 76, .04) 42%, transparent 74%);
+}
+
+.washMid {
+  top: 118vh;
+  left: -22vw;
+  width: 78vw;
+  height: 90vh;
+  background:
+    radial-gradient(52% 48% at 44% 46%, rgba(43, 40, 32, .16), rgba(43, 40, 32, .06) 44%, transparent 76%),
+    radial-gradient(40% 52% at 72% 30%, rgba(95, 117, 104, .14), rgba(95, 117, 104, .05) 42%, transparent 78%);
+}
+
+.washArchive {
+  top: 340vh;
+  right: -16vw;
+  width: 70vw;
+  height: 96vh;
+  background:
+    radial-gradient(54% 50% at 56% 44%, rgba(43, 40, 32, .13), rgba(43, 40, 32, .05) 46%, transparent 78%),
+    radial-gradient(38% 46% at 22% 66%, rgba(160, 127, 76, .1), transparent 76%);
+}
+
+.washPress {
+  top: 620vh;
+  left: -20vw;
+  width: 72vw;
+  height: 88vh;
+  background:
+    radial-gradient(50% 46% at 48% 50%, rgba(43, 40, 32, .12), rgba(43, 40, 32, .045) 46%, transparent 78%),
+    radial-gradient(36% 44% at 76% 34%, rgba(59, 86, 106, .1), transparent 76%);
+}
+
+.washLow {
+  right: -18vw;
+  bottom: -8vh;
+  width: 66vw;
+  height: 70vh;
+  background:
+    radial-gradient(50% 46% at 50% 50%, rgba(43, 40, 32, .15), rgba(43, 40, 32, .055) 44%, transparent 76%),
+    radial-gradient(36% 44% at 26% 68%, rgba(59, 86, 106, .12), rgba(59, 86, 106, .04) 42%, transparent 76%);
+}
+
+/* Mist. Movement suggested, not shown: two bands drifting at speeds slow
+   enough that you cannot catch them moving, only notice they have moved. */
+.mistBand {
+  position: absolute;
+  z-index: 0;
+  left: -30%;
+  width: 160%;
+  height: clamp(150px, 26vh, 340px);
+  opacity: calc(var(--mist) * .5);
+  background:
+    radial-gradient(62% 74% at 38% 50%, rgba(251, 249, 244, .86), rgba(251, 249, 244, .34) 52%, transparent 82%),
+    radial-gradient(48% 62% at 74% 46%, rgba(251, 249, 244, .6), transparent 76%);
+  pointer-events: none;
+  animation: mistDrift 128s linear infinite;
+}
+
+.mistBandSlow {
+  animation-duration: 196s;
+  animation-direction: reverse;
+  opacity: calc(var(--mist) * .34);
+}
+
+@keyframes mistDrift {
+  from { transform: translate3d(-6%, 0, 0); }
+  to { transform: translate3d(6%, 0, 0); }
+}
+
+/* --- 3. GRID AND RHYTHM -------------------------------------------------- */
+
+/* Twelve columns, but nothing is ever allowed to fill them. The widest block
+   on the page spans seven. The unused columns are the subject. */
+.canvas {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  margin-inline: auto;
+  max-width: 1560px;
+  padding-inline: var(--gutter);
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: clamp(14px, 1.9vw, 32px);
+}
+
+.chapter {
+  position: relative;
+}
+
+/* A soft belly of deeper paper behind a section: darkest at its middle,
+   nothing at either end, so sections have weight without having borders. */
+.tinted {
+  position: relative;
+  isolation: isolate;
+}
+
+.tinted::before {
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  right: -50vw;
+  bottom: 0;
+  left: -50vw;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    color-mix(in srgb, var(--paper-deep) 30%, transparent) 22%,
+    color-mix(in srgb, var(--paper-deep) 58%, transparent) 48%,
+    color-mix(in srgb, var(--paper-deep) 52%, transparent) 70%,
+    transparent 100%
+  );
+  content: '';
+  opacity: calc(var(--tint) * .85);
+  pointer-events: none;
+}
+
+/* The seam. Sections never end — one paper tone dissolves into the next
+   across a band of nothing, the way distance dissolves in a landscape. */
+.seam {
+  position: relative;
+  z-index: 1;
+  height: calc(var(--breath) * .9);
+  pointer-events: none;
+}
+
+.seam::after {
+  position: absolute;
+  bottom: 34%;
+  left: var(--gutter);
+  width: min(46%, 520px);
+  height: 1px;
+  background: var(--ink-4);
+  content: '';
+  opacity: var(--rule);
+  /* An evaporating stroke: dense where the brush pressed, gone at both ends,
+     and not symmetrical — it starts before it thickens and lifts off late. */
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 22%, #000 58%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 22%, #000 58%, transparent 100%);
+}
+
+.seamRight::after {
+  right: var(--gutter);
+  left: auto;
+  -webkit-mask-image: linear-gradient(270deg, transparent 0%, #000 22%, #000 58%, transparent 100%);
+  mask-image: linear-gradient(270deg, transparent 0%, #000 22%, #000 58%, transparent 100%);
+}
+
+/* The single cinnabar node on a divider, placed off-centre. */
+.seam::before {
+  position: absolute;
+  bottom: calc(34% - 2px);
+  left: calc(var(--gutter) + min(46%, 520px) * .38);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--cinnabar);
+  content: '';
+  opacity: .5;
+}
+
+.seamRight::before {
+  right: calc(var(--gutter) + min(46%, 520px) * .38);
+  left: auto;
+}
+
+/* --- 4. TYPE ------------------------------------------------------------- */
+
+.displayXL,
+.displayL,
+.displayM {
+  margin: 0;
+  color: var(--ink-1);
+  font-family: var(--ink-display), 'Cormorant Garamond', Georgia, serif;
+  font-weight: 300;
+  letter-spacing: -.014em;
+}
+
+.displayXL {
+  font-size: calc(clamp(3.1rem, 8.6vw, 7.6rem) * var(--scale));
+  line-height: .93;
+  text-wrap: pretty;
+}
+
+.displayL {
+  font-size: calc(clamp(2.05rem, 5vw, 4.1rem) * var(--scale));
+  line-height: 1.05;
+  text-wrap: pretty;
+}
+
+.displayM {
+  font-size: calc(clamp(1.45rem, 2.7vw, 2.25rem) * var(--scale));
+  line-height: 1.2;
+}
+
+.displayXL em,
+.displayL em,
+.displayM em,
+.italicLine {
+  color: var(--ink-2);
+  font-style: italic;
+  font-weight: 300;
+}
+
+/* The seal-side annotation. Small, tracked wide, never dark. It is the
+   painter's marginal note, not signage — so it recedes on purpose. */
+.micro {
+  display: inline-flex;
+  align-items: center;
+  gap: .7em;
+  margin: 0;
+  color: var(--ink-4);
+  font-family: var(--ink-micro), system-ui, sans-serif;
+  font-size: .688rem;
+  font-weight: 400;
+  line-height: 1.5;
+  text-transform: uppercase;
+  letter-spacing: .24em;
+}
+
+.lead {
+  margin: 0;
+  max-width: var(--measure);
+  color: var(--ink-2);
+  font-size: calc(clamp(1.02rem, 1.35vw, 1.24rem) * var(--scale));
+  font-weight: 300;
+  line-height: 1.78;
+}
+
+.body {
+  margin: 0;
+  max-width: var(--measure);
+  color: var(--ink-2);
+  font-size: calc(clamp(.95rem, 1.02vw, 1.03rem) * var(--scale));
+  font-weight: 300;
+  line-height: 1.88;
+}
+
+.annotation {
+  margin: 0;
+  color: var(--ink-3);
+  font-size: .84rem;
+  font-style: italic;
+  font-weight: 300;
+  line-height: 1.7;
+}
+
+/* --- 5. MARKS ------------------------------------------------------------ */
+
+/* Section index. A numeral, a short stroke, a word. The stroke is what makes
+   it a marker rather than a label — it starts dense and lifts off. */
+.index {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: .9rem;
+}
+
+.index::before {
+  width: clamp(20px, 3vw, 42px);
+  height: 1px;
+  flex: none;
+  background: var(--ink-3);
+  content: '';
+  opacity: var(--rule);
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 40%, transparent 100%);
+  mask-image: linear-gradient(90deg, #000 0%, #000 40%, transparent 100%);
+}
+
+.indexNumber {
+  position: relative;
+  z-index: 1;
+  color: var(--ink-2);
+  font-family: var(--ink-micro), system-ui, sans-serif;
+  font-size: .688rem;
+  font-weight: 400;
+  letter-spacing: .24em;
+}
+
+/* The seal. A real name-stamp: 張, cut in stone, pressed slightly crooked
+   because a hand pressed it. The only saturated thing on the page. */
+.seal {
+  display: grid;
+  width: 2.05rem;
+  height: 2.05rem;
+  flex: none;
+  place-items: center;
+  border-radius: 2px;
+  background: var(--cinnabar);
+  color: #fbf9f4;
+  font-family: 'Songti SC', 'Source Han Serif SC', 'Noto Serif CJK SC', 'SimSun', serif;
+  font-size: 1.02rem;
+  line-height: 1;
+  transform: rotate(-2.2deg);
+  /* Stone does not cut clean. Two offset gradients bite the corners so the
+     edge reads as pressed rather than drawn. */
+  -webkit-mask-image:
+    radial-gradient(120% 120% at 12% 8%, #000 62%, rgba(0, 0, 0, .82) 82%, rgba(0, 0, 0, .55) 100%),
+    linear-gradient(#000, #000);
+  mask-image:
+    radial-gradient(120% 120% at 12% 8%, #000 62%, rgba(0, 0, 0, .82) 82%, rgba(0, 0, 0, .55) 100%),
+    linear-gradient(#000, #000);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+
+.sealLarge {
+  width: 3.1rem;
+  height: 3.1rem;
+  font-size: 1.6rem;
+}
+
+/* The scroll thread. A single silk line down the left margin with an ink dot
+   travelling it — the page's own pulse, one pixel wide. */
+.thread {
+  position: fixed;
+  z-index: 60;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--gutter) * .42);
+  width: 1px;
+  background: var(--ink-5);
+  opacity: .58;
+  pointer-events: none;
+}
+
+.threadInk {
+  position: absolute;
+  top: 0;
+  left: -.5px;
+  width: 2px;
+  height: 100%;
+  background: linear-gradient(180deg, transparent, var(--ink-3) 24%, var(--ink-1));
+  transform-origin: 50% 0;
+  transform: scaleY(0);
+}
+
+.threadDot {
+  position: absolute;
+  left: -2.5px;
+  width: 6px;
+  height: 6px;
+  margin-top: -3px;
+  border-radius: 50%;
+  background: var(--cinnabar);
+  opacity: .7;
+  transform: translateY(0);
+}
+
+/* --- 6. ARRIVAL --------------------------------------------------------- */
+
+/* Ink does not slide onto paper. It soaks in and finds its edge. Everything
+   arrives out of focus and at low density, then resolves — attack quick,
+   release long, so the last third of every entrance is almost still. */
+.page [data-ink] {
+  opacity: 0;
+  filter: blur(5px);
+  transform: translate3d(0, 14px, 0);
+  will-change: opacity, filter, transform;
+}
+
+.page .visible [data-ink] {
+  opacity: 1;
+  filter: blur(0);
+  transform: none;
+  transition:
+    opacity 1s var(--ease-release) var(--enter, 0ms),
+    filter 1.15s var(--ease-release) var(--enter, 0ms),
+    transform 1.2s var(--ease-release) var(--enter, 0ms);
+  will-change: auto;
+}
+
+/* Boot: hold the hidden state without transitioning into it. */
+.booting [data-ink] {
+  transition: none !important;
+}
+
+/* --- 7. HEADER ----------------------------------------------------------- */
+
+.header {
+  position: sticky;
+  z-index: 70;
+  top: 0;
+  display: grid;
+  min-height: 78px;
+  align-items: center;
+  padding-inline: var(--gutter);
+  grid-template-columns: auto 1fr auto;
+  gap: 1.5rem;
+  transition: background var(--release) var(--ease-release), backdrop-filter var(--release);
+}
+
+.headerVeiled {
+  background: color-mix(in srgb, var(--paper) 84%, transparent);
+  backdrop-filter: blur(16px) saturate(.9);
+}
+
+.identity {
+  display: inline-flex;
+  align-items: center;
+  gap: .85rem;
+}
+
+.identityName {
+  color: var(--ink-1);
+  font-family: var(--ink-micro), system-ui, sans-serif;
+  font-size: .72rem;
+  font-weight: 400;
+  letter-spacing: .28em;
+}
+
+.nav {
+  display: flex;
+  justify-content: center;
+  gap: clamp(1.1rem, 2.2vw, 2.3rem);
+}
+
+.nav a {
+  position: relative;
+  padding-bottom: .5rem;
+  color: var(--ink-3);
+  font-family: var(--ink-micro), system-ui, sans-serif;
+  font-size: .688rem;
+  font-weight: 400;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  transition: color var(--release) var(--ease-release);
+}
+
+.nav a:hover,
+.nav a:focus-visible {
+  color: var(--ink-1);
+  transition-duration: var(--attack);
+}
+
+/* Active section is marked by a single dot of cinnabar, not a bar. A stamp,
+   not an underline. */
+.nav a::after {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--cinnabar);
+  content: '';
+  opacity: 0;
+  transform: translate(-50%, 4px);
+  transition: opacity var(--release) var(--ease-release), transform var(--release) var(--ease-release);
+}
+
+.navActive::after {
+  opacity: .78;
+  transform: translate(-50%, 0);
+  transition-duration: var(--attack);
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: clamp(.8rem, 1.6vw, 1.6rem);
+}
+
+.contactLink {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  color: var(--ink-2);
+  font-family: var(--ink-micro), system-ui, sans-serif;
+  font-size: .688rem;
+  font-weight: 400;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+}
+
+.contactLink svg {
+  transition: transform var(--release) var(--ease-release);
+}
+
+.contactLink:hover svg {
+  transform: translate(3px, -3px);
+  transition-duration: var(--attack);
+}
+
+.menuButton {
+  display: none;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  color: var(--ink-2);
+}
+
+.mobileNav {
+  display: none;
+}
+
+/* --- 8. HERO ------------------------------------------------------------- */
+
+/* Composition: the figure sits right of centre and low, the way a fisherman
+   sits in the lower third of a river scene. The upper left is given away
+   entirely — that emptiness is the loudest thing in the frame. */
+.hero {
+  position: relative;
+  padding-block: clamp(3rem, 9vh, 7.5rem) calc(var(--breath) * 1.1);
+  align-items: end;
+  min-height: min(92vh, 900px);
+}
+
+.heroWords {
+  position: relative;
+  z-index: 2;
+  grid-column: 2 / span 6;
+  grid-row: 1;
+  align-self: center;
+}
+
+.heroEyebrow {
+  margin-bottom: clamp(1.6rem, 4vh, 3rem);
+}
+
+.heroName {
+  display: block;
+  margin-bottom: .1em;
+}
+
+.heroRole {
+  display: block;
+  max-width: 24ch;
+  color: var(--ink-3);
+  font-family: var(--ink-display), Georgia, serif;
+  font-size: calc(clamp(1.45rem, 3.1vw, 2.6rem) * var(--scale));
+  text-wrap: balance;
+  font-style: italic;
+  font-weight: 300;
+  line-height: 1.14;
+}
+
+.heroLines {
+  margin-top: clamp(2rem, 5vh, 3.4rem);
+  display: grid;
+  gap: .5rem;
+}
+
+.heroLines span {
+  color: var(--ink-3);
+  font-size: calc(clamp(.94rem, 1.1vw, 1.06rem) * var(--scale));
+  font-weight: 300;
+  line-height: 1.6;
+}
+
+.heroActions {
+  display: flex;
+  margin-top: clamp(2.2rem, 5.5vh, 3.6rem);
+  align-items: center;
+  gap: clamp(1.4rem, 3vw, 2.8rem);
+  flex-wrap: wrap;
+}
+
+/* A link is a stroke waiting to be made. It draws in quickly under the
+   pointer and takes almost a second to lift — the decay of a plucked string. */
+.strokeLink {
+  position: relative;
+  padding-bottom: .42rem;
+  color: var(--ink-1);
+  font-family: var(--ink-micro), system-ui, sans-serif;
+  font-size: .72rem;
+  font-weight: 400;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+}
+
+.strokeLink::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1px;
+  background: var(--ink-2);
+  content: '';
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: transform var(--release) var(--ease-release);
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 74%, transparent 100%);
+  mask-image: linear-gradient(90deg, #000 0%, #000 74%, transparent 100%);
+}
+
+.strokeLink:hover::after,
+.strokeLink:focus-visible::after {
+  transform: scaleX(1);
+  transition: transform var(--attack) var(--ease-in-ink);
+}
+
+.strokeLinkQuiet {
+  color: var(--ink-3);
+}
+
+/* The portrait. Rectangular crop, but three of its edges are not there — the
+   image is asked to dissolve into the paper rather than sit on top of it.
+   Two intersecting masks: a vertical fall-off and a soft left shoulder. */
+.heroFigure {
+  position: relative;
+  z-index: 1;
+  grid-column: 8 / span 5;
+  grid-row: 1;
+  align-self: end;
+  margin-right: calc(var(--drift) * -1);
+  aspect-ratio: 4 / 5;
+}
+
+.heroFigure img {
+  object-fit: cover;
+  object-position: center 22%;
+}
+
+.inkEdge {
+  position: relative;
+  overflow: hidden;
+  -webkit-mask-image:
+    linear-gradient(177deg, transparent 0%, #000 19%, #000 58%, transparent 100%),
+    linear-gradient(93.5deg, transparent 0%, #000 21%, #000 76%, transparent 100%);
+  mask-image:
+    linear-gradient(177deg, transparent 0%, #000 19%, #000 58%, transparent 100%),
+    linear-gradient(93.5deg, transparent 0%, #000 21%, #000 76%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+
+/* Photographs are colour; ink is not. Images rest at a high-key, low-chroma
+   state so they sit inside the palette, and give their colour back when
+   somebody actually looks at them. Colour as reward for attention. */
+.tonalImage img {
+  filter: grayscale(.88) contrast(1.04) brightness(1.05) sepia(.12);
+  transition: filter calc(var(--release) * 1.15) var(--ease-release);
+}
+
+.tonalImage:hover img,
+.tonalImage:focus-visible img,
+.tonalImage:focus-within img {
+  filter: grayscale(.06) contrast(1.02) brightness(1.01) sepia(0);
+  transition-duration: var(--attack);
+}
+
+.heroCaption {
+  position: absolute;
+  right: 0;
+  bottom: calc(var(--breath) * -.34);
+  display: grid;
+  gap: .4rem;
+  text-align: right;
+}
+
+.heroCorner {
+  position: absolute;
+  z-index: 2;
+  top: clamp(3rem, 9vh, 7.5rem);
+  right: var(--gutter);
+  display: grid;
+  gap: .5rem;
+  justify-items: end;
+}
+
+/* --- 9. COLOPHON --------------------------------------------------------- */
+
+/* 題跋 — the inscription. In a scroll it sits in the empty part of the
+   painting, and it is never the largest thing, only the quietest. This is the
+   only screen on the site with nothing else on it. */
+.colophon {
+  position: relative;
+  padding-block: calc(var(--breath) * 1.5);
+  min-height: min(74vh, 720px);
+  align-content: center;
+}
+
+.colophonInner {
+  grid-column: 3 / span 7;
+  position: relative;
+}
+
+.colophonQuote {
+  margin: 0;
+  color: var(--ink-1);
+  font-family: var(--ink-display), Georgia, serif;
+  font-size: calc(clamp(1.9rem, 4.4vw, 3.6rem) * var(--scale));
+  font-weight: 300;
+  line-height: 1.24;
+}
+
+.colophonQuote span {
+  display: block;
+}
+
+.colophonQuote em {
+  color: var(--ink-2);
+  font-style: italic;
+}
+
+.colophonSign {
+  display: flex;
+  margin-top: clamp(2.4rem, 6vh, 4rem);
+  margin-left: auto;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+  width: fit-content;
+}
+
+.colophonSign p {
+  margin: 0;
+  color: var(--ink-3);
+  font-family: var(--ink-micro), system-ui, sans-serif;
+  font-size: .66rem;
+  letter-spacing: .22em;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+/* --- 10. STORY ----------------------------------------------------------- */
+
+/* The void moves. In the hero it was upper-left; here it crosses to the left
+   margin entirely and the text is pushed right, so scrolling feels like
+   unrolling a handscroll rather than paging through a document. */
+.story {
+  padding-block: calc(var(--breath) * 1.15);
+  align-items: start;
+}
+
+.storyMark {
+  grid-column: 2 / span 2;
+  position: sticky;
+  top: clamp(140px, 26vh, 260px);
+  padding-top: .5rem;
+}
+
+.storyBody {
+  grid-column: 5 / span 6;
+  display: grid;
+  gap: clamp(1.6rem, 4vh, 2.6rem);
+  margin-right: calc(var(--drift) * -1);
+}
+
+.storyHead {
+  margin-bottom: clamp(.6rem, 2vh, 1.2rem);
+}
+
+.storyFacts {
+  display: flex;
+  margin-top: clamp(1rem, 3vh, 2rem);
+  gap: clamp(1.2rem, 3vw, 2.6rem);
+  flex-wrap: wrap;
+}
+
+.storyFacts span {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  color: var(--ink-3);
+  font-family: var(--ink-micro), system-ui, sans-serif;
+  font-size: .688rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.storyFacts svg {
+  color: var(--ink-4);
+}
+
+.storyAside {
+  grid-column: 11 / span 2;
+  align-self: end;
+  padding-top: 6vh;
+}
+
+/* --- 11. PRACTICE — 三遠 ------------------------------------------------- */
+
+/* The three distances of landscape painting: 高遠 looking up, 深遠 looking
+   into, 平遠 looking across. Three panels stepped down and back rather than
+   set in a row — the same three ideas, but arranged as recession instead of
+   as a grid of equal cards. */
+.practice {
+  padding-block: calc(var(--breath) * 1.2);
+}
+
+.practiceHead {
+  grid-column: 2 / span 6;
+  margin-bottom: clamp(3rem, 9vh, 6.5rem);
+}
+
+.practiceHead .lead {
+  margin-top: clamp(1.4rem, 3.5vh, 2.2rem);
+}
+
+.movements {
+  display: contents;
+}
+
+.movement {
+  position: relative;
+  padding-top: clamp(1.6rem, 4vh, 2.6rem);
+  border-top: 1px solid var(--ink-5);
+}
+
+.movement::before {
+  position: absolute;
+  top: -1px;
+  right: 0;
+  left: 0;
+  height: 1px;
+  background: var(--ink-2);
+  content: '';
+  opacity: var(--rule);
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 26%, transparent 76%);
+  mask-image: linear-gradient(90deg, #000 0%, #000 26%, transparent 76%);
+}
+
+.movementA { grid-column: 2 / span 3; }
+.movementB { grid-column: 6 / span 3; margin-top: calc(clamp(3rem, 9vh, 7rem) * var(--step)); }
+.movementC { grid-column: 10 / span 3; margin-top: calc(clamp(5rem, 15vh, 12rem) * var(--step)); }
+
+.movement h3 {
+  margin: clamp(1.4rem, 3.5vh, 2.2rem) 0 0;
+  color: var(--ink-1);
+  font-family: var(--ink-display), Georgia, serif;
+  font-size: calc(clamp(1.5rem, 2.5vw, 2.1rem) * var(--scale));
+  font-weight: 300;
+  letter-spacing: -.01em;
+  line-height: 1.1;
+}
+
+.movement .body {
+  margin-top: 1.1rem;
+}
+
+.movement .body + .body {
+  margin-top: 1.4em;
+}
+
+.movement .strokeLink {
+  margin-top: clamp(1.4rem, 3.5vh, 2.2rem);
+}
+
+.movementDistance {
+  display: block;
+  margin-top: .5rem;
+  color: var(--ink-4);
+  font-family: 'Songti SC', 'Source Han Serif SC', 'Noto Serif CJK SC', 'SimSun', serif;
+  font-size: .95rem;
+  letter-spacing: .3em;
+}
+
+/* --- 12. RESEARCH -------------------------------------------------------- */
+
+.research {
+  position: relative;
+  padding-block: calc(var(--breath) * 1.25);
+  align-items: center;
+}
+
+.researchVisual {
+  grid-column: 2 / span 4;
+  position: relative;
+  margin-left: calc(var(--drift) * -1);
+}
+
+.researchPoster {
+  position: relative;
+  display: block;
+  aspect-ratio: 3 / 4;
+}
+
+.researchPoster img {
+  object-fit: cover;
+}
+
+.researchPosterCue {
+  position: absolute;
+  right: 1.1rem;
+  bottom: 1.1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  background: color-mix(in srgb, var(--paper-lit) 88%, transparent);
+  padding: .5rem .85rem;
+  color: var(--ink-2);
+  font-family: var(--ink-micro), system-ui, sans-serif;
+  font-size: .625rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity var(--release) var(--ease-release), transform var(--release) var(--ease-release);
+  backdrop-filter: blur(8px);
+}
+
+.researchPoster:hover .researchPosterCue,
+.researchPoster:focus-visible .researchPosterCue {
+  opacity: 1;
+  transform: none;
+  transition-duration: var(--attack);
+}
+
+.researchCopy {
+  grid-column: 7 / span 5;
+  display: grid;
+  gap: clamp(1.2rem, 3vh, 2rem);
+}
+
+.researchTitle {
+  margin-bottom: -.2rem;
+}
+
+/* Three themes as a horizontal recession: each further away, each fainter.
+   Depth without weight. */
+.researchThemes {
+  display: flex;
+  margin-top: clamp(1rem, 3vh, 1.8rem);
+  align-items: baseline;
+  gap: clamp(1.2rem, 3vw, 2.6rem);
+  flex-wrap: wrap;
+}
+
+.researchThemes span {
+  display: grid;
+  gap: .4rem;
+  color: var(--ink-3);
+  font-family: var(--ink-micro), system-ui, sans-serif;
+  font-size: .625rem;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+}
+
+.researchThemes strong {
+  color: var(--ink-1);
+  font-family: var(--ink-display), Georgia, serif;
+  font-size: calc(1.5rem * var(--scale));
+  font-weight: 300;
+  letter-spacing: .02em;
+}
+
+.researchThemes span:nth-child(2) strong { color: var(--ink-2); }
+.researchThemes span:nth-child(3) strong { color: var(--ink-3); }
+
+/* --- 13. ARCHIVE --------------------------------------------------------- */
+
+.archive {
+  padding-block: calc(var(--breath) * 1.2);
+}
+
+.archiveHead {
+  grid-column: 2 / span 6;
+  margin-bottom: clamp(3rem, 8vh, 5.5rem);
+}
+
+.archiveHead .lead {
+  margin-top: clamp(1.2rem, 3vh, 1.9rem);
+}
+
+.archiveCount {
+  grid-column: 10 / span 3;
+  align-self: end;
+  margin-bottom: clamp(3rem, 8vh, 5.5rem);
+  text-align: right;
+  justify-items: end;
+  display: grid;
+  gap: .5rem;
+}
+
+/* Cards are not cards. No border, no shadow, no fill — a photograph, a
+   hairline, and the words underneath, at three different heights so the row
+   never reads as a row. */
+.archiveGrid {
+  grid-column: 2 / span 10;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: clamp(18px, 3vw, 54px);
+  row-gap: clamp(40px, 8vh, 96px);
+  align-items: start;
+}
+
+.archiveItem {
+  position: relative;
+  display: grid;
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  gap: 1rem;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+}
+
+.archiveItem:nth-child(3n + 2) { margin-top: calc(clamp(28px, 6vh, 78px) * var(--step)); }
+.archiveItem:nth-child(3n + 3) { margin-top: calc(clamp(12px, 2.5vh, 34px) * var(--step)); }
+
+.archiveFrame {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+}
+
+.archiveItem:nth-child(4n + 1) .archiveFrame { aspect-ratio: 4 / 5; }
+.archiveItem:nth-child(5n + 3) .archiveFrame { aspect-ratio: 1 / 1; }
+
+.archiveFrame img {
+  object-fit: cover;
+}
+
+/* A wash of paper laid over the photograph, lifted when you look. */
+.archiveFrame::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--paper) 26%, transparent), color-mix(in srgb, var(--paper-deep) 40%, transparent));
+  content: '';
+  opacity: calc(var(--wash) * .9);
+  pointer-events: none;
+  transition: opacity calc(var(--release) * 1.15) var(--ease-release);
+}
+
+.archiveItem:hover .archiveFrame::after,
+.archiveItem:focus-visible .archiveFrame::after {
+  opacity: 0;
+  transition-duration: var(--attack);
+}
+
+.archiveMeta {
+  display: grid;
+  gap: .55rem;
+  padding-top: .9rem;
+  border-top: 1px solid var(--ink-5);
+  position: relative;
+}
+
+.archiveMeta::before {
+  position: absolute;
+  top: -1px;
+  right: 0;
+  left: 0;
+  height: 1px;
+  background: var(--ink-2);
+  content: '';
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  transition: opacity var(--release) var(--ease-release), transform var(--release) var(--ease-release);
+}
+
+.archiveItem:hover .archiveMeta::before,
+.archiveItem:focus-visible .archiveMeta::before {
+  opacity: var(--rule);
+  transform: scaleX(1);
+  transition-duration: var(--attack);
+}
+
+.archiveDate {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1.4rem;
+  color: var(--ink-4);
+  font-family: var(--ink-micro), system-ui, sans-serif;
+  font-size: .625rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+
+.archiveDate time { flex: none; }
+
+.archiveDate span {
+  min-width: 0;
+  text-align: right;
+  letter-spacing: .12em;
+}
+
+.archiveTitle {
+  color: var(--ink-1);
+  font-family: var(--ink-display), Georgia, serif;
+  font-size: calc(clamp(1.12rem, 1.5vw, 1.4rem) * var(--scale));
+  font-weight: 400;
+  line-height: 1.24;
+}
+
+.archiveVenue {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  color: var(--ink-3);
+  font-size: .8rem;
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.archiveMore {
+  grid-column: 2 / span 10;
+  margin-top: clamp(3rem, 7vh, 5rem);
+}
+
+.archiveMore summary {
+  display: inline-flex;
+  align-items: center;
+  gap: .7rem;
+  cursor: pointer;
+  color: var(--ink-2);
+  font-family: var(--ink-micro), system-ui, sans-serif;
+  font-size: .688rem;
+  letter-spacing: .2em;
+  list-style: none;
+  text-transform: uppercase;
+}
+
+.archiveMore summary::-webkit-details-marker { display: none; }
+
+.archiveMore summary::after {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--cinnabar);
+  content: '';
+  opacity: .55;
+  transition: transform var(--release) var(--ease-release);
+}
+
+.archiveMore[open] summary::after {
+  transform: scale(1.9);
+}
+
+.archiveMoreGrid {
+  margin-top: clamp(2.5rem, 6vh, 4rem);
+  grid-column: auto;
+}
+
+.archiveFooter {
+  grid-column: 2 / span 10;
+  display: flex;
+  margin-top: clamp(3rem, 7vh, 5rem);
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+/* --- 14. VIDEOS ---------------------------------------------------------- */
+
+.videos {
+  padding-block: calc(var(--breath) * 1.2);
+}
+
+.videosHead {
+  grid-column: 3 / span 6;
+  margin-bottom: clamp(3rem, 8vh, 5.5rem);
+}
+
+.videosHead .lead {
+  margin-top: clamp(1.2rem, 3vh, 1.9rem);
+}
+
+.videoGrid {
+  grid-column: 3 / span 9;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: clamp(20px, 3.5vw, 60px);
+  row-gap: clamp(38px, 8vh, 84px);
+}
+
+.videoItem {
+  display: grid;
+  gap: 1.1rem;
+}
+
+.videoItem:nth-child(even) { margin-top: calc(clamp(24px, 6vh, 72px) * var(--step)); }
+
+.videoLead {
+  grid-column: 1 / -1;
+}
+
+.videoFrame {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  background: var(--paper-deep);
+}
+
+.videoFrame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(.88) contrast(1.04) brightness(1.04) sepia(.1);
+  transition: filter calc(var(--release) * 1.15) var(--ease-release);
+}
+
+.videoItem:hover .videoFrame img,
+.videoItem:focus-visible .videoFrame img {
+  filter: grayscale(.05) contrast(1.02) brightness(1);
+  transition-duration: var(--attack);
+}
+
+/* The play cue is a circle drawn in one gesture — an ensō, not a button. */
+.videoCue {
+  position: absolute;
+  bottom: 1.1rem;
+  left: 1.1rem;
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--paper-lit) 76%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ink-1) 26%, transparent);
+  color: var(--paper-lit);
+  backdrop-filter: blur(6px);
+  transition:
+    background var(--release) var(--ease-release),
+    transform var(--release) var(--ease-release);
+}
+
+.videoItem:hover .videoCue {
+  background: color-mix(in srgb, var(--ink-0) 62%, transparent);
+  transform: scale(1.08);
+  transition-duration: var(--attack);
+}
+
+.videoIndex {
+  position: absolute;
+  top: 1rem;
+  right: 1.1rem;
+  color: color-mix(in srgb, var(--paper-lit) 82%, transparent);
+  font-family: var(--ink-micro), system-ui, sans-serif;
+  font-size: .625rem;
+  letter-spacing: .2em;
+}
+
+.videoMeta {
+  display: grid;
+  gap: .5rem;
+}
+
+.videoCategory {
+  color: var(--ink-4);
+  font-family: var(--ink-micro), system-ui, sans-serif;
+  font-size: .625rem;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+}
+
+.videoTitle {
+  margin: 0;
+  color: var(--ink-1);
+  font-family: var(--ink-display), Georgia, serif;
+  font-size: calc(clamp(1.15rem, 1.7vw, 1.55rem) * var(--scale));
+  font-weight: 400;
+  line-height: 1.24;
+}
+
+/* --- 15. PRESS ----------------------------------------------------------- */
+
+.press {
+  padding-block: calc(var(--breath) * 1.2);
+}
+
+.pressHead {
+  grid-column: 2 / span 7;
+  margin-bottom: clamp(2.6rem, 7vh, 4.5rem);
+}
+
+.pressTabs {
+  grid-column: 2 / span 3;
+  display: grid;
+  align-content: start;
+  gap: 0;
+}
+
+.pressTab {
+  position: relative;
+  display: grid;
+  border: 0;
+  border-bottom: 1px solid var(--ink-5);
+  background: none;
+  padding: 1.1rem 0;
+  cursor: pointer;
+  gap: .3rem;
+  text-align: left;
+  font: inherit;
+  color: var(--ink-3);
+  transition: color var(--release) var(--ease-release);
+}
+
+.pressTab:first-child {
+  border-top: 1px solid var(--ink-5);
+}
+
+.pressTab strong {
+  color: inherit;
+  font-family: var(--ink-display), Georgia, serif;
+  font-size: calc(1.3rem * var(--scale));
+  font-weight: 400;
+  letter-spacing: .01em;
+}
+
+.pressTab small {
+  color: var(--ink-4);
+  font-family: var(--ink-micro), system-ui, sans-serif;
+  font-size: .625rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.pressTabActive {
+  color: var(--ink-0);
+}
+
+/* A brush stroke down the left of the selected item: it lands quickly and
+   would take almost a second to leave. */
+.pressTab::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -14px;
+  width: 2px;
+  background: var(--cinnabar);
+  content: '';
+  opacity: .8;
+  transform: scaleY(0);
+  transform-origin: 50% 0;
+  transition: transform var(--release) var(--ease-release);
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 20%, #000 78%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 20%, #000 78%, transparent);
+}
+
+.pressTabActive::before {
+  transform: scaleY(1);
+  transition-duration: var(--attack);
+}
+
+.pressPanel {
+  grid-column: 6 / span 6;
+  display: grid;
+  gap: clamp(1.4rem, 3.5vh, 2.2rem);
+}
+
+.pressVisual {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border: 0;
+  background: var(--paper-deep);
+  padding: 0;
+  cursor: pointer;
+}
+
+.pressVisual img {
+  object-fit: cover;
+}
+
+.pressPlay {
+  position: absolute;
+  right: 1.1rem;
+  bottom: 1.1rem;
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--paper-lit) 74%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ink-1) 30%, transparent);
+  color: var(--paper-lit);
+  backdrop-filter: blur(6px);
+  transition: background var(--release) var(--ease-release);
+}
+
+.pressVisual:hover .pressPlay {
+  background: color-mix(in srgb, var(--ink-0) 64%, transparent);
+  transition-duration: var(--attack);
+}
+
+.pressCopy {
+  display: grid;
+  gap: 1rem;
+}
+
+.pressUnavailable {
+  color: var(--ink-4);
+  font-size: .8rem;
+  font-style: italic;
+}
+
+/* --- 16. CONTACT AND FOOTER ---------------------------------------------- */
+
+/* The last screen gives away the right half completely. A scroll ends in
+   empty silk, not in a footer band. */
+.contact {
+  padding-block: calc(var(--breath) * 1.4) calc(var(--breath) * .8);
+  align-items: start;
+}
+
+.contactMain {
+  grid-column: 2 / span 6;
+  display: grid;
+  gap: clamp(2rem, 5vh, 3.2rem);
+}
+
+.email {
+  display: inline-flex;
+  align-items: center;
+  gap: .9rem;
+  color: var(--ink-1);
+  font-family: var(--ink-display), Georgia, serif;
+  font-size: calc(clamp(1.35rem, 2.9vw, 2.4rem) * var(--scale));
+  font-weight: 300;
+  width: fit-content;
+  position: relative;
+  padding-bottom: .3rem;
+}
+
+.email::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1px;
+  background: var(--ink-3);
+  content: '';
+  transform: scaleX(1);
+  transform-origin: 0 50%;
+  transition: transform var(--release) var(--ease-release);
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 62%, transparent 100%);
+  mask-image: linear-gradient(90deg, #000 0%, #000 62%, transparent 100%);
+}
+
+.email:hover::after {
+  transform: scaleX(1.04);
+  transition-duration: var(--attack);
+}
+
+.contactDetails {
+  display: grid;
+  gap: .9rem;
+}
+
+.contactDetails span {
+  display: inline-flex;
+  align-items: center;
+  gap: .6rem;
+  color: var(--ink-3);
+  font-size: .88rem;
+  font-weight: 300;
+}
+
+.contactDetails svg { color: var(--ink-4); }
+
+.contactSocial {
+  display: flex;
+  gap: clamp(1.2rem, 3vw, 2.4rem);
+  flex-wrap: wrap;
+}
+
+.contactAside {
+  grid-column: 10 / span 3;
+  display: grid;
+  gap: 1.6rem;
+  padding-top: clamp(1rem, 4vh, 3rem);
+}
+
+.qrList {
+  display: grid;
+  gap: 1.4rem;
+}
+
+.qrItem {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+}
+
+.qrThumb {
+  display: block;
+  width: 52px;
+  height: 52px;
+  flex: none;
+  overflow: hidden;
+  filter: grayscale(1) contrast(1.1);
+  opacity: .72;
+  transition: opacity var(--release) var(--ease-release), filter var(--release) var(--ease-release);
+}
+
+.qrItem:hover .qrThumb {
+  filter: grayscale(0);
+  opacity: 1;
+  transition-duration: var(--attack);
+}
+
+.qrThumb img { width: 100%; height: auto; display: block; }
+
+.qrLabel {
+  display: grid;
+  gap: .2rem;
+}
+
+.qrLabel strong {
+  color: var(--ink-2);
+  font-family: var(--ink-micro), system-ui, sans-serif;
+  font-size: .688rem;
+  font-weight: 400;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+
+.qrLabel small {
+  color: var(--ink-4);
+  font-size: .72rem;
+  font-style: italic;
+}
+
+.footer {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  margin-inline: auto;
+  max-width: 1560px;
+  padding: clamp(2.4rem, 6vh, 4rem) var(--gutter) clamp(2.6rem, 6vh, 4rem);
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.footerIdentity {
+  display: inline-flex;
+  align-items: center;
+  gap: .9rem;
+}
+
+/* --- 17. MODAL ----------------------------------------------------------- */
+
+/* The overlay is fog, not a scrim. It does not black the page out; it puts
+   distance between you and it. */
+.modal {
+  position: fixed;
+  z-index: 200;
+  inset: 0;
+  display: grid;
+  padding: clamp(1rem, 4vw, 3rem);
+  place-items: center;
+}
+
+.modalFog {
+  position: absolute;
+  border: 0;
+  inset: 0;
+  background: color-mix(in srgb, var(--paper) 76%, transparent);
+  cursor: pointer;
+  backdrop-filter: blur(18px) saturate(.8);
+  animation: fogIn var(--release) var(--ease-release);
+}
+
+@keyframes fogIn {
+  from { opacity: 0; backdrop-filter: blur(0); }
+  to { opacity: 1; }
+}
+
+.modalPanel {
+  position: relative;
+  display: grid;
+  overflow: hidden auto;
+  width: min(1020px, 100%);
+  max-height: 88vh;
+  background: var(--paper-lit);
+  grid-template-columns: 1.25fr 1fr;
+  animation: panelIn calc(var(--release) * 1.05) var(--ease-release);
+  box-shadow: 0 40px 120px -60px rgba(22, 21, 15, .4);
+}
+
+@keyframes panelIn {
+  from { opacity: 0; filter: blur(8px); transform: translateY(16px); }
+  to { opacity: 1; filter: blur(0); transform: none; }
+}
+
+.modalImage {
+  position: relative;
+  min-height: 320px;
+}
+
+.modalImage img { object-fit: cover; }
+
+.modalCopy {
+  display: grid;
+  padding: clamp(1.8rem, 4vw, 3rem);
+  align-content: start;
+  gap: 1.1rem;
+}
+
+.modalClose {
+  position: absolute;
+  z-index: 2;
+  top: 1rem;
+  right: 1rem;
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid var(--ink-5);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--paper-lit) 90%, transparent);
+  cursor: pointer;
+  color: var(--ink-2);
+  transition: border-color var(--release) var(--ease-release);
+}
+
+.modalClose:hover { border-color: var(--ink-3); transition-duration: var(--attack); }
+
+.modalPanelNarrow {
+  width: min(560px, 100%);
+  grid-template-columns: 1fr;
+  justify-items: center;
+  padding: clamp(1.8rem, 4vw, 2.6rem);
+  gap: 1.2rem;
+  text-align: center;
+}
+
+.modalPanelNarrow img { width: min(320px, 72vw); height: auto; }
+
+.modalVideo {
+  width: min(1020px, 100%);
+  background: var(--ink-0);
+}
+
+.modalVideo video { display: block; width: 100%; max-height: 78vh; }
+
+/* --- 18. UTILITIES ------------------------------------------------------- */
+
+.fillImage {
+  position: absolute;
+  inset: 0;
+}
+
+.exploreFlag {
+  position: relative;
+  z-index: 80;
+  display: grid;
+  align-items: center;
+  gap: .8rem 1.6rem;
+  border-bottom: 1px solid var(--ink-5);
+  background: color-mix(in srgb, var(--paper-deep) 62%, transparent);
+  padding: .55rem var(--gutter);
+  grid-template-columns: 1fr auto 1fr;
+  color: var(--ink-3);
+  font-family: var(--ink-micro), system-ui, sans-serif;
+  font-size: .625rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+
+.flagLabel { justify-self: start; }
+
+.flagReturn {
+  justify-self: end;
+  border-bottom: 1px solid var(--ink-4);
+  padding-bottom: 1px;
+  color: var(--ink-1);
+}
+
+/* Three dilutions of one ink, offered as three readings of the same page. */
+.toneSwitch {
+  display: flex;
+  justify-self: center;
+  align-items: stretch;
+  gap: 0;
+}
+
+.toneButton {
+  display: flex;
+  align-items: baseline;
+  gap: .5rem;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  background: none;
+  padding: .3rem .85rem .35rem;
+  cursor: pointer;
+  color: var(--ink-4);
+  font-family: inherit;
+  font-size: .625rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  transition:
+    color var(--release) var(--ease-release),
+    border-color var(--release) var(--ease-release);
+}
+
+.toneButton b {
+  font-family: 'Songti SC', 'Source Han Serif SC', 'Noto Serif CJK SC', 'SimSun', serif;
+  font-size: .82rem;
+  font-weight: 400;
+  letter-spacing: .08em;
+}
+
+.toneButton i {
+  font-style: normal;
+}
+
+.toneButton:hover {
+  color: var(--ink-2);
+  transition-duration: var(--attack);
+}
+
+.toneButtonActive {
+  border-bottom-color: var(--cinnabar);
+  color: var(--ink-0);
+  transition-duration: var(--attack);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* --- 19. RESPONSIVE ------------------------------------------------------ */
+
+/* The composition does not survive being squeezed — so below the breakpoint
+   it is rebuilt rather than shrunk. The void stops being horizontal and
+   becomes vertical: less width to give away, so the page gives away time. */
+
+@media (max-width: 1080px) {
+  .heroWords { grid-column: 1 / span 7; }
+  .heroFigure { grid-column: 8 / span 5; }
+  .storyMark { grid-column: 1 / span 2; }
+  .storyBody { grid-column: 4 / span 8; }
+  .storyAside { display: none; }
+  .practiceHead,
+  .archiveHead,
+  .pressHead { grid-column: 1 / span 8; }
+  .videosHead { grid-column: 1 / span 8; }
+  .movementA { grid-column: 1 / span 4; }
+  .movementB { grid-column: 5 / span 4; }
+  .movementC { grid-column: 9 / span 4; }
+  .researchVisual { grid-column: 1 / span 4; }
+  .researchCopy { grid-column: 6 / span 7; }
+  .archiveGrid,
+  .archiveMore,
+  .archiveFooter { grid-column: 1 / span 12; }
+  .archiveCount { grid-column: 9 / span 4; }
+  .videoGrid { grid-column: 1 / span 12; }
+  .pressTabs { grid-column: 1 / span 3; }
+  .pressPanel { grid-column: 5 / span 8; }
+  .contactMain { grid-column: 1 / span 7; }
+  .contactAside { grid-column: 9 / span 4; }
+  .colophonInner { grid-column: 2 / span 9; }
+}
+
+@media (max-width: 860px) {
+  .page { --breath: clamp(64px, 10vh, 110px); }
+
+  .exploreFlag {
+    justify-items: center;
+    gap: .5rem;
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+
+  .flagLabel,
+  .flagReturn { justify-self: center; }
+
+  .toneButton { padding-inline: .55rem; letter-spacing: .1em; }
+
+  .nav { display: none; }
+  .menuButton { display: grid; place-items: center; }
+  .header { grid-template-columns: auto 1fr auto; }
+
+  .mobileNav {
+    position: fixed;
+    z-index: 90;
+    inset: 78px 0 0;
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    gap: clamp(1.2rem, 4vh, 2.2rem);
+    background: color-mix(in srgb, var(--paper) 96%, transparent);
+    backdrop-filter: blur(20px);
+    animation: fogIn var(--release) var(--ease-release);
+  }
+
+  .mobileNav a {
+    color: var(--ink-2);
+    font-family: var(--ink-display), Georgia, serif;
+    font-size: 1.9rem;
+    font-weight: 300;
+  }
+
+  .contactLink { display: none; }
+
+  .hero {
+    min-height: auto;
+    padding-block: clamp(2rem, 6vh, 4rem) calc(var(--breath) * 1.1);
+  }
+
+  .heroWords {
+    grid-column: 1 / span 12;
+    grid-row: auto;
+  }
+
+  .heroFigure,
+  .page[data-tone='po'] .heroFigure {
+    grid-column: 2 / span 11;
+    grid-row: auto;
+    margin-top: clamp(2.6rem, 8vh, 4.5rem);
+    margin-right: 0;
+    aspect-ratio: 3 / 4;
+  }
+
+  .page[data-tone='po'] .heroWords { grid-column: 1 / span 12; }
+  .heroCorner { display: none; }
+  .heroCaption { bottom: -2.6rem; }
+
+  .colophonInner { grid-column: 1 / span 12; }
+  .colophon { min-height: auto; }
+
+  .storyMark { position: static; grid-column: 1 / span 12; margin-bottom: 1.8rem; }
+  .storyBody { grid-column: 1 / span 12; }
+
+  .practiceHead { grid-column: 1 / span 12; }
+  .movementA,
+  .movementB,
+  .movementC {
+    grid-column: 1 / span 12;
+    margin-top: clamp(2.4rem, 6vh, 3.4rem);
+  }
+  .movementA { margin-top: 0; }
+
+  .researchVisual { grid-column: 1 / span 9; margin-bottom: clamp(2rem, 6vh, 3rem); }
+  .researchCopy { grid-column: 1 / span 12; }
+
+  .archiveHead,
+  .archiveCount { grid-column: 1 / span 12; }
+  .archiveCount { margin-bottom: clamp(2rem, 5vh, 3rem); text-align: left; justify-items: start; }
+  .archiveGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  .videosHead { grid-column: 1 / span 12; }
+  .videoGrid { grid-template-columns: 1fr; }
+  .videoItem:nth-child(even) { margin-top: 0; }
+
+  .pressHead,
+  .pressTabs,
+  .pressPanel { grid-column: 1 / span 12; }
+  .pressTabs { margin-bottom: clamp(2rem, 5vh, 3rem); }
+  .pressTab::before { left: -10px; }
+
+  .contactMain,
+  .contactAside { grid-column: 1 / span 12; }
+  .contactAside { padding-top: clamp(2.4rem, 6vh, 3.4rem); }
+
+  .modalPanel { grid-template-columns: 1fr; }
+  .modalImage { min-height: 240px; aspect-ratio: 4 / 3; }
+
+  .thread { display: none; }
+}
+
+@media (max-width: 560px) {
+  .archiveGrid { grid-template-columns: 1fr; row-gap: clamp(32px, 7vh, 60px); }
+  .archiveItem:nth-child(3n + 2),
+  .archiveItem:nth-child(3n + 3) { margin-top: 0; }
+  .archiveFooter { flex-direction: column; gap: .6rem; }
+  .heroFigure { grid-column: 1 / span 12; }
+  .indexGlyph { font-size: 2.6rem; }
+}
+
+/* --- 20. REDUCED MOTION -------------------------------------------------- */
+
+/* Stillness is already the point. When motion is unwanted, the design loses
+   almost nothing: the composition, the tone, and the silence all remain. */
+@media (prefers-reduced-motion: reduce) {
+  .page [data-ink] {
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+
+  .page .visible [data-ink] { transition: none; }
+
+  .mistBand { animation: none; }
+
+  .modalFog,
+  .modalPanel,
+  .mobileNav { animation: none; }
+
+  .page *,
+  .page *::before,
+  .page *::after {
+    transition-duration: 1ms !important;
+  }
+}
