@@ -2399,6 +2399,31 @@
   object-fit: contain;
 }
 
+.memoirModalImageWide {
+  isolation: isolate;
+}
+
+.memoirModalImageWide::before {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background: rgba(33, 29, 24, .34);
+  content: '';
+  pointer-events: none;
+}
+
+.memoirModalImageWide .memoirModalImageBackdrop {
+  z-index: 0;
+  object-fit: cover;
+  filter: blur(24px) saturate(.78);
+  opacity: .52;
+  transform: scale(1.08);
+}
+
+.memoirModalImageWide .memoirModalImageForeground {
+  z-index: 2;
+}
+
 .memoirModalCopy {
   display: flex;
   flex-direction: column;
@@ -2432,6 +2457,16 @@
   line-height: 1.72;
 }
 
+.memoirModalCopy .memoirModalSubtitle {
+  margin: 0 0 18px;
+  color: var(--red);
+  font-family: var(--font-display, Georgia), Georgia, serif;
+  font-size: clamp(1.25rem, 2.1vw, 1.7rem);
+  line-height: 1.08;
+  letter-spacing: -.02em;
+  text-wrap: balance;
+}
+
 .memoirModalCopy small {
   margin-top: 20px;
   color: #81776c;
@@ -2453,6 +2488,18 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: .16em;
+}
+
+.memoirModalActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 18px;
+  margin-top: 32px;
+}
+
+.memoirModalActions a {
+  margin-top: 0;
 }
 
 @keyframes memoirBackdropIn {

@@ -1,8 +1,34 @@
 import type { Performance } from '@/types'
 
-export type ArchiveEngagement = Omit<Performance, 'description'>
+export type ArchiveEngagementModalCopy = {
+  subtitle: string
+  description: string
+}
+
+export type ArchiveEngagement = Omit<Performance, 'description' | 'link'> & {
+  link: string
+  linkLabel?: string
+  videoLink?: string
+  modalCopy?: ArchiveEngagementModalCopy
+}
 
 export const engagementArchive: ArchiveEngagement[] = [
+  {
+    id: 'vision-china-london-2026',
+    date: '2026-09-17',
+    venue: '1 Great George Street, Westminster, London',
+    event: 'Vision China · London',
+    tags: ['performance', 'community'],
+    images: ['/images/timeline/vision-china-london-2026.jpg'],
+    link: 'https://x.com/ChinaDaily/status/2100918603499618368',
+    linkLabel: 'View China Daily coverage',
+    videoLink: 'https://weixin.qq.com/sph/AZ66Cx11GX',
+    modalCopy: {
+      subtitle: 'Listen to Each Other, Open New Horizons',
+      description:
+        "I joined the opening musical performance at China Daily's Vision China event in London, bringing together guzheng, erhu and violin in a programme celebrating cultural dialogue and connection.",
+    },
+  },
   {
     id: 'dragon-boat-festival-2026',
     date: '2026-06-30',

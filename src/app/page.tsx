@@ -171,6 +171,7 @@ const portraitArchiveImages = new Set([
 ])
 
 const wideArchiveImages = new Set([
+  '/images/timeline/vision-china-london-2026.jpg',
   '/images/timeline/lihua-school-awards-2024.jpg',
   '/images/timeline/wu-fest-teaser-2025.jpg',
   '/images/timeline/york-spring-gala-2026.jpg',
@@ -274,6 +275,9 @@ export default function InkResonancePage() {
   )
   const archivePreviewItems = sortedEngagements.slice(0, 9)
   const archiveRemainingItems = sortedEngagements.slice(9)
+  const selectedEngagementImageIsWide = selectedEngagement
+    ? wideArchiveImages.has(selectedEngagement.images[0])
+    : false
 
   const renderArchiveMemoirCard = (
     item: (typeof engagementArchive)[number],
@@ -1087,7 +1091,7 @@ export default function InkResonancePage() {
           </details>
           <div className={styles.archiveFooter}>
             <p className={styles.archiveCount}>
-              {engagementArchive.length} engagements · February 2024—June 2026
+              {engagementArchive.length} engagements · February 2024—September 2026
             </p>
             <p>Performance · Workshops · Community</p>
           </div>
@@ -1492,16 +1496,27 @@ export default function InkResonancePage() {
               <X size={19} />
             </button>
             <div
-              className={styles.memoirModalImage}
+              className={`${styles.memoirModalImage} ${selectedEngagementImageIsWide ? styles.memoirModalImageWide : ''}`}
               style={{
                 viewTransitionName: `memory-${selectedEngagement.id.replace(/[^a-zA-Z0-9_-]/g, '-')}`,
               } as CSSProperties}
             >
+              {selectedEngagementImageIsWide && (
+                <Image
+                  src={selectedEngagement.images[0]}
+                  alt=""
+                  aria-hidden="true"
+                  fill
+                  sizes="(max-width: 800px) 92vw, 56vw"
+                  className={styles.memoirModalImageBackdrop}
+                />
+              )}
               <Image
                 src={selectedEngagement.images[0]}
                 alt={selectedEngagement.event}
                 fill
                 sizes="(max-width: 800px) 92vw, 56vw"
+                className={selectedEngagementImageIsWide ? styles.memoirModalImageForeground : undefined}
               />
             </div>
             <div className={styles.memoirModalCopy}>
@@ -1509,17 +1524,34 @@ export default function InkResonancePage() {
                 {formatEngagementDate(selectedEngagement.date)} · {selectedEngagement.tags.join(' · ')}
               </span>
               <h3 id="memoir-modal-title">{selectedEngagement.event}</h3>
-              <p>{describeEngagement(selectedEngagement.tags)}</p>
+              {selectedEngagement.modalCopy && (
+                <p className={styles.memoirModalSubtitle}>{selectedEngagement.modalCopy.subtitle}</p>
+              )}
+              <p>{selectedEngagement.modalCopy?.description ?? describeEngagement(selectedEngagement.tags)}</p>
               <small>{selectedEngagement.venue}</small>
-              {selectedEngagement.link && (
-                <a
-                  href={selectedEngagement.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`Read the full event for ${selectedEngagement.event} (opens in a new tab)`}
-                >
-                  Read the full event <ArrowUpRight size={15} />
-                </a>
+              {(selectedEngagement.link || selectedEngagement.videoLink) && (
+                <div className={styles.memoirModalActions}>
+                  {selectedEngagement.link && (
+                    <a
+                      href={selectedEngagement.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`${selectedEngagement.linkLabel ?? 'Read the full event'} for ${selectedEngagement.event} (opens in a new tab)`}
+                    >
+                      {selectedEngagement.linkLabel ?? 'Read the full event'} <ArrowUpRight size={15} />
+                    </a>
+                  )}
+                  {selectedEngagement.videoLink && (
+                    <a
+                      href={selectedEngagement.videoLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`Watch performance video for ${selectedEngagement.event} (opens in a new tab)`}
+                    >
+                      Watch performance video <ArrowUpRight size={15} />
+                    </a>
+                  )}
+                </div>
               )}
             </div>
           </div>
