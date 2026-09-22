@@ -5,10 +5,16 @@ export type ArchiveEngagementModalCopy = {
   description: string
 }
 
+export type ArchiveEngagementResource = {
+  label: string
+  href: string
+}
+
 export type ArchiveEngagement = Omit<Performance, 'description' | 'link'> & {
   link: string
   linkLabel?: string
   videoLink?: string
+  externalResources?: ArchiveEngagementResource[]
   modalCopy?: ArchiveEngagementModalCopy
 }
 
@@ -22,6 +28,12 @@ export const engagementArchive: ArchiveEngagement[] = [
     images: ['/images/timeline/vision-china-london-2026.jpg'],
     link: 'https://x.com/ChinaDaily/status/2100918603499618368',
     linkLabel: 'View China Daily coverage',
+    externalResources: [
+      {
+        label: 'Read China Daily article',
+        href: 'https://cn.chinadaily.com.cn/a/202609/18/WS6aaccfffe4b09a165c78ae63.html',
+      },
+    ],
     videoLink: 'https://weixin.qq.com/sph/AZ66Cx11GX',
     modalCopy: {
       subtitle: 'Listen to Each Other, Open New Horizons',

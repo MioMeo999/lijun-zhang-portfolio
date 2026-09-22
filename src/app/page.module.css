@@ -2346,8 +2346,8 @@
   border: 0;
   background: rgba(20, 17, 14, .78);
   cursor: pointer;
-  backdrop-filter: blur(14px);
-  animation: memoirBackdropIn .35s ease both;
+  animation: memoirBackdropIn .18s ease-out both;
+  will-change: opacity;
 }
 
 .memoirModalPanel {
@@ -2360,7 +2360,16 @@
   overflow: hidden;
   background: var(--paper);
   box-shadow: 0 40px 110px rgba(0, 0, 0, .4);
-  animation: memoirPanelIn .55s var(--ease-out) both;
+  animation: memoirPanelIn .24s var(--ease-out) both;
+  will-change: opacity, transform;
+}
+
+.memoirModalPanelClosing {
+  animation: memoirPanelOut .18s ease-in both;
+}
+
+.memoirModalClosing .memoirModalBackdrop {
+  animation: memoirBackdropOut .18s ease-in both;
 }
 
 .memoirModalClose {
@@ -2507,14 +2516,30 @@
   to { opacity: 1; }
 }
 
+@keyframes memoirBackdropOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
 @keyframes memoirPanelIn {
   from {
     opacity: 0;
-    transform: translateY(18px) scale(.98);
+    transform: translateY(8px) scale(.995);
   }
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes memoirPanelOut {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(6px) scale(.995);
   }
 }
 
@@ -5915,36 +5940,26 @@
     transform var(--hover-slow) var(--ease-out);
 }
 
-/* The modal's copy uses the same step as every other cascade on the page. */
+/* The copy follows the panel as one quiet secondary gesture. */
 .memoirModalCopy > * {
-  animation: memoirCopyIn var(--enter) var(--ease-out) both;
-  animation-delay: calc(var(--step) * 3);
+  animation: memoirCopyIn .18s var(--ease-out) 80ms both;
 }
 
-.memoirModalCopy > :nth-child(2) { animation-delay: calc(var(--step) * 4); }
-.memoirModalCopy > :nth-child(3) { animation-delay: calc(var(--step) * 5); }
-.memoirModalCopy > :nth-child(4) { animation-delay: calc(var(--step) * 6); }
-.memoirModalCopy > :nth-child(5) { animation-delay: calc(var(--step) * 7); }
+.memoirModalPanelClosing .memoirModalCopy > * {
+  animation: none;
+  opacity: 1;
+  transform: none;
+}
 
 @keyframes memoirCopyIn {
   from {
     opacity: 0;
-    translate: 0 12px;
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
-    translate: 0 0;
+    transform: translateY(0);
   }
-}
-
-:global(::view-transition-old(root)),
-:global(::view-transition-new(root)) {
-  animation: none;
-}
-
-:global(::view-transition-group(*)) {
-  animation-duration: .55s;
-  animation-timing-function: var(--ease-out);
 }
 
 .researchPoster > a {
@@ -6225,9 +6240,4 @@
     transition: none;
   }
 
-  :global(::view-transition-group(*)),
-  :global(::view-transition-old(*)),
-  :global(::view-transition-new(*)) {
-    animation: none !important;
-  }
 }

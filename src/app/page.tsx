@@ -2,11 +2,11 @@
 
 import {
   type CSSProperties,
+  useCallback,
   useEffect,
   useRef,
   useState,
 } from 'react'
-import { flushSync } from 'react-dom'
 import Image from 'next/image'
 import {
   ArrowDown,
@@ -93,24 +93,6 @@ const navItems = [
   { href: '#videos', label: 'Watch' },
   { href: '#media', label: 'Press' },
 ]
-
-type ViewTransitionDocument = Document & {
-  startViewTransition?: (callback: () => void) => { finished: Promise<void> }
-}
-
-const runViewTransition = (update: () => void) => {
-  const viewTransitionDocument = document as ViewTransitionDocument
-  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
-  if (prefersReducedMotion || !viewTransitionDocument.startViewTransition) {
-    update()
-    return
-  }
-
-  viewTransitionDocument.startViewTransition(() => {
-    flushSync(update)
-  })
-}
 
 const pressNotes: Record<string, { eyebrow: string; description: string; note: string }> = {
   CCTV: {
@@ -261,6 +243,7 @@ export default function InkResonancePage() {
   const qrTriggerRef = useRef<HTMLElement | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [selectedEngagement, setSelectedEngagement] = useState<(typeof engagementArchive)[number] | null>(null)
+  const [isMemoirClosing, setIsMemoirClosing] = useState(false)
   const [activeSection, setActiveSection] = useState('story')
   const [activePressId, setActivePressId] = useState(pressItems[0].id)
   const [activePressVideoId, setActivePressVideoId] = useState<string | null>(null)
@@ -278,6 +261,33 @@ export default function InkResonancePage() {
   const selectedEngagementImageIsWide = selectedEngagement
     ? wideArchiveImages.has(selectedEngagement.images[0])
     : false
+  const selectedEngagementResources = selectedEngagement
+    ? [
+        {
+          label: selectedEngagement.linkLabel ?? 'Read the full event',
+          href: selectedEngagement.link,
+        },
+        ...(selectedEngagement.externalResources ?? []),
+        ...(selectedEngagement.videoLink
+          ? [{ label: 'Watch performance video', href: selectedEngagement.videoLink }]
+          : []),
+      ]
+    : []
+
+  const openMemoir = useCallback((item: (typeof engagementArchive)[number], trigger: HTMLElement | null) => {
+    memoirTriggerRef.current = trigger
+    setIsMemoirClosing(false)
+    setSelectedEngagement(item)
+  }, [])
+
+  const closeMemoir = useCallback(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setSelectedEngagement(null)
+      return
+    }
+
+    setIsMemoirClosing(true)
+  }, [])
 
   const renderArchiveMemoirCard = (
     item: (typeof engagementArchive)[number],
@@ -286,12 +296,8 @@ export default function InkResonancePage() {
     const isPortrait = portraitArchiveImages.has(item.images[0])
     const isWide = wideArchiveImages.has(item.images[0])
     const isTall = tallArchiveImages.has(item.images[0])
-    const transitionName = `memory-${item.id.replace(/[^a-zA-Z0-9_-]/g, '-')}`
     const cardStyle = {
       '--archive-index': Math.min(index, 8),
-    } as CSSProperties
-    const photoStyle = {
-      viewTransitionName: selectedEngagement?.id === item.id ? 'none' : transitionName,
     } as CSSProperties
 
     return (
@@ -309,8 +315,7 @@ export default function InkResonancePage() {
         style={cardStyle}
         onClick={(event) => {
           if (event.target instanceof Element && event.target.closest('button')) return
-          memoirTriggerRef.current = null
-          runViewTransition(() => setSelectedEngagement(item))
+          openMemoir(item, null)
         }}
       >
         <span className={styles.archiveMemoirPin} aria-hidden="true" />
@@ -319,10 +324,8 @@ export default function InkResonancePage() {
           className={styles.archiveMemoirPhoto}
           aria-label={`Open details for ${item.event}`}
           onClick={(event) => {
-            memoirTriggerRef.current = event.currentTarget
-            runViewTransition(() => setSelectedEngagement(item))
+            openMemoir(item, event.currentTarget)
           }}
-          style={photoStyle}
         >
           <Image
             src={item.images[0]}
@@ -340,8 +343,7 @@ export default function InkResonancePage() {
           type="button"
           className={styles.archiveMemoirCaption}
           onClick={(event) => {
-            memoirTriggerRef.current = event.currentTarget
-            runViewTransition(() => setSelectedEngagement(item))
+            openMemoir(item, event.currentTarget)
           }}
           aria-label={`Open details for ${item.event}`}
         >
@@ -383,7 +385,7 @@ export default function InkResonancePage() {
     const previousOverflow = document.body.style.overflow
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        runViewTransition(() => setSelectedEngagement(null))
+        closeMemoir()
       }
     }
 
@@ -395,10 +397,10 @@ export default function InkResonancePage() {
       document.body.style.overflow = previousOverflow
       window.removeEventListener('keydown', closeOnEscape)
       if (trigger?.isConnected) {
-        window.requestAnimationFrame(() => trigger.focus())
+        window.requestAnimationFrame(() => trigger.focus({ preventScroll: true }))
       }
     }
-  }, [selectedEngagement])
+  }, [closeMemoir, selectedEngagement])
 
   useEffect(() => {
     if (!activePressVideoId) return
@@ -1478,28 +1480,38 @@ export default function InkResonancePage() {
       </main>
 
       {selectedEngagement && (
-        <div className={styles.memoirModal} role="dialog" aria-modal="true" aria-labelledby="memoir-modal-title">
+        <div
+          className={`${styles.memoirModal} ${isMemoirClosing ? styles.memoirModalClosing : ''}`}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="memoir-modal-title"
+        >
           <button
             type="button"
             className={styles.memoirModalBackdrop}
-            onClick={() => runViewTransition(() => setSelectedEngagement(null))}
+            onClick={closeMemoir}
             aria-label="Close memory"
           />
-          <div className={styles.memoirModalPanel}>
+          <div
+            className={`${styles.memoirModalPanel} ${isMemoirClosing ? styles.memoirModalPanelClosing : ''}`}
+            onAnimationEnd={(event) => {
+              if (!isMemoirClosing || event.target !== event.currentTarget) return
+
+              setSelectedEngagement(null)
+              setIsMemoirClosing(false)
+            }}
+          >
             <button
               type="button"
               className={styles.memoirModalClose}
               ref={memoirCloseRef}
-              onClick={() => runViewTransition(() => setSelectedEngagement(null))}
+              onClick={closeMemoir}
               aria-label="Close memory"
             >
               <X size={19} />
             </button>
             <div
               className={`${styles.memoirModalImage} ${selectedEngagementImageIsWide ? styles.memoirModalImageWide : ''}`}
-              style={{
-                viewTransitionName: `memory-${selectedEngagement.id.replace(/[^a-zA-Z0-9_-]/g, '-')}`,
-              } as CSSProperties}
             >
               {selectedEngagementImageIsWide && (
                 <Image
@@ -1529,28 +1541,19 @@ export default function InkResonancePage() {
               )}
               <p>{selectedEngagement.modalCopy?.description ?? describeEngagement(selectedEngagement.tags)}</p>
               <small>{selectedEngagement.venue}</small>
-              {(selectedEngagement.link || selectedEngagement.videoLink) && (
+              {selectedEngagementResources.length > 0 && (
                 <div className={styles.memoirModalActions}>
-                  {selectedEngagement.link && (
+                  {selectedEngagementResources.map((resource) => (
                     <a
-                      href={selectedEngagement.link}
+                      key={resource.href}
+                      href={resource.href}
                       target="_blank"
                       rel="noopener noreferrer"
-                      aria-label={`${selectedEngagement.linkLabel ?? 'Read the full event'} for ${selectedEngagement.event} (opens in a new tab)`}
+                      aria-label={`${resource.label} for ${selectedEngagement.event} (opens in a new tab)`}
                     >
-                      {selectedEngagement.linkLabel ?? 'Read the full event'} <ArrowUpRight size={15} />
+                      {resource.label} <ArrowUpRight size={15} />
                     </a>
-                  )}
-                  {selectedEngagement.videoLink && (
-                    <a
-                      href={selectedEngagement.videoLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={`Watch performance video for ${selectedEngagement.event} (opens in a new tab)`}
-                    >
-                      Watch performance video <ArrowUpRight size={15} />
-                    </a>
-                  )}
+                  ))}
                 </div>
               )}
             </div>
