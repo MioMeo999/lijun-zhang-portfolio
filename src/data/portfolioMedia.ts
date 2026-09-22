@@ -78,18 +78,36 @@ export type PressItem = {
   id: string
   name: string
   logoUrl: string
+  logoWidth?: number
+  featureImageUrl?: string
+  featureImageAlt?: string
   needsDarkBackgroundContrast?: boolean
+  mediaLabel?: string
   screenshotUrl?: string
   videoUrl?: string
   posterUrl?: string
+  linkLabel?: string
   link: string | null
 }
 
 export const pressItems: PressItem[] = [
   {
+    id: 'china-daily',
+    name: 'China Daily',
+    logoUrl: '/images/press/china-daily-logo.png',
+    logoWidth: 190,
+    featureImageUrl: '/images/timeline/vision-china-london-2026.jpg',
+    featureImageAlt:
+      'Guzheng, erhu and violin performers on stage at Vision China in London, beneath the event screen and China Daily signage.',
+    mediaLabel: 'Live coverage',
+    linkLabel: 'Watch the live coverage',
+    link: 'https://x.com/ChinaDaily/status/2100918603499618368',
+  },
+  {
     id: '1',
     name: 'CCTV',
     logoUrl: '/images/press/cctv-mark.png',
+    logoWidth: 132,
     needsDarkBackgroundContrast: true,
     videoUrl: '/videos/cctv-coverage.mp4',
     posterUrl: '/images/press/cctv-screenshot.png',
@@ -99,6 +117,7 @@ export const pressItems: PressItem[] = [
     id: '2',
     name: "People's Daily",
     logoUrl: '/images/press/people-daily-mark.png',
+    logoWidth: 146,
     screenshotUrl: '/images/press/people-daily-screenshot.png',
     link: 'https://paper.people.com.cn/rmrbhwb/pc/content/202508/21/content_30098228.html',
   },
@@ -106,6 +125,7 @@ export const pressItems: PressItem[] = [
     id: '3',
     name: 'CGTN',
     logoUrl: '/images/press/cgtn-mark.png',
+    logoWidth: 142,
     videoUrl: '/videos/cgtn-mid-autumn-clip.mp4',
     posterUrl: '/images/press/cgtn-screenshot.png',
     link: 'https://newseu.cgtn.com/news/2025-10-06/Manchester-s-Mid-Autumn-festival-celebrates-China-UK-friendship-1HedEuOxHbi/p.html',

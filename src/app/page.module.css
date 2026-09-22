@@ -1834,9 +1834,7 @@
 
 .pressTabs > label:hover .pressLogo img,
 .pressTabs > label:focus-visible .pressLogo img,
-.pressSwitcher:has(input[id='press-control-1']:checked) label[for='press-control-1'] .pressLogo img,
-.pressSwitcher:has(input[id='press-control-2']:checked) label[for='press-control-2'] .pressLogo img,
-.pressSwitcher:has(input[id='press-control-3']:checked) label[for='press-control-3'] .pressLogo img {
+.pressTabs > .pressTabActive .pressLogo img {
   filter: none !important;
   opacity: 1;
   transform: translateY(-1px) scale(1.012) !important;
@@ -2758,9 +2756,7 @@
   transform: translateY(-1px) scale(1.012) !important;
 }
 
-.pressSwitcher:has(input[id='press-control-1']:checked) label[for='press-control-1'] .pressLogo img,
-.pressSwitcher:has(input[id='press-control-2']:checked) label[for='press-control-2'] .pressLogo img,
-.pressSwitcher:has(input[id='press-control-3']:checked) label[for='press-control-3'] .pressLogo img {
+.pressTabs > .pressTabActive .pressLogo img {
   opacity: .82;
 }
 
@@ -2994,7 +2990,7 @@
 
 .pressTabs {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   border-top: 1px solid rgba(31, 28, 24, .24);
   border-left: 1px solid rgba(31, 28, 24, .24);
 }
@@ -3550,16 +3546,12 @@
 
 .pressTabs > label:hover::after,
 .pressTabs > label:focus-visible::after,
-.pressSwitcher:has(input[id='press-control-1']:checked) label[for='press-control-1']::after,
-.pressSwitcher:has(input[id='press-control-2']:checked) label[for='press-control-2']::after,
-.pressSwitcher:has(input[id='press-control-3']:checked) label[for='press-control-3']::after {
+.pressTabs > .pressTabActive::after {
   transform: scaleX(1);
 }
 
 .pressTabs > label:hover .pressLogo img,
-.pressSwitcher:has(input[id='press-control-1']:checked) label[for='press-control-1'] .pressLogo img,
-.pressSwitcher:has(input[id='press-control-2']:checked) label[for='press-control-2'] .pressLogo img,
-.pressSwitcher:has(input[id='press-control-3']:checked) label[for='press-control-3'] .pressLogo img {
+.pressTabs > .pressTabActive .pressLogo img {
   filter: grayscale(0);
   opacity: 1;
 }
@@ -3718,6 +3710,10 @@
   .pressFeature {
     grid-template-columns: 1fr;
   }
+
+  .pressTabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
   .research {
     grid-template-columns: minmax(250px, .72fr) minmax(0, 1.28fr);
   }
@@ -3748,9 +3744,7 @@
 
   .pressVideoBackdrop,
   .pressVideoPanel,
-  .pressSwitcher:has(input[id='press-control-1']:checked) [id='press-1'],
-  .pressSwitcher:has(input[id='press-control-2']:checked) [id='press-2'],
-  .pressSwitcher:has(input[id='press-control-3']:checked) [id='press-3'] {
+  .pressFeatureActive {
     animation: none;
   }
 
@@ -3914,13 +3908,13 @@
 
 .pressLogo {
   display: grid;
-  width: 164px;
+  width: min(100%, 190px);
   height: 50px;
   place-items: center start;
 }
 
 .pressLogo img {
-  width: 150px !important;
+  width: min(100%, var(--press-logo-width, 150px)) !important;
   height: 44px !important;
   object-fit: contain;
   object-position: left center;
@@ -3929,23 +3923,9 @@
   transform: none !important;
 }
 
-.pressTabs > label:nth-child(1) .pressLogo img {
-  width: 132px !important;
-}
-
-.pressTabs > label:nth-child(2) .pressLogo img {
-  width: 146px !important;
-}
-
-.pressTabs > label:nth-child(3) .pressLogo img {
-  width: 142px !important;
-}
-
 .pressTabs > label:hover .pressLogo img,
 .pressTabs > label:focus-visible .pressLogo img,
-.pressSwitcher:has(input[id='press-control-1']:checked) label[for='press-control-1'] .pressLogo img,
-.pressSwitcher:has(input[id='press-control-2']:checked) label[for='press-control-2'] .pressLogo img,
-.pressSwitcher:has(input[id='press-control-3']:checked) label[for='press-control-3'] .pressLogo img {
+.pressTabs > .pressTabActive .pressLogo img {
   filter: grayscale(1) brightness(0) saturate(0) !important;
   opacity: 1;
 }
@@ -4037,9 +4017,7 @@
 
 .pressTabs > label:hover .pressLogo img,
 .pressTabs > label:focus-visible .pressLogo img,
-.pressSwitcher:has(input[id='press-control-1']:checked) label[for='press-control-1'] .pressLogo img,
-.pressSwitcher:has(input[id='press-control-2']:checked) label[for='press-control-2'] .pressLogo img,
-.pressSwitcher:has(input[id='press-control-3']:checked) label[for='press-control-3'] .pressLogo img {
+.pressTabs > .pressTabActive .pressLogo img {
   filter: none !important;
   opacity: 1;
   transform: translateY(-1px) scale(1.012) !important;
@@ -4065,7 +4043,8 @@
 /* Borderless coverage covers: film stills and an editorial page */
 .pressFeatureVideo,
 .pressFeatureEditorial,
-.pressFeaturePortrait {
+.pressFeaturePortrait,
+.pressFeaturePhoto {
   overflow: visible;
   border: 0;
   background: transparent;
@@ -5304,7 +5283,7 @@
   .pressTabs {
     display: grid;
     grid-auto-flow: row;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     overflow: visible;
   }
 
@@ -5323,10 +5302,8 @@
     place-items: center;
   }
 
-  .pressTabs > label:nth-child(1) .pressLogo img,
-  .pressTabs > label:nth-child(2) .pressLogo img,
-  .pressTabs > label:nth-child(3) .pressLogo img {
-    width: min(100%, 92px) !important;
+  .pressTabs > label .pressLogo img {
+    width: min(100%, var(--press-logo-width, 92px)) !important;
     height: 30px !important;
     object-position: center;
   }
@@ -6240,4 +6217,41 @@
     transition: none;
   }
 
+}
+
+.pressFeaturePhoto {
+  aspect-ratio: 16 / 10;
+  filter: drop-shadow(0 26px 42px rgba(48, 38, 30, .14));
+}
+
+.pressFeaturePhoto .pressEditorialLink {
+  inset: 14px;
+  overflow: hidden;
+}
+
+.pressFeaturePhoto .pressVisualBackdrop {
+  display: none;
+}
+
+.pressFeaturePhoto .pressVisualSubject {
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  padding: 0 !important;
+  filter: none !important;
+  transform: none !important;
+}
+
+.pressFeaturePhoto .pressVisualLabel {
+  right: 4%;
+  bottom: -18px;
+}
+
+@media (max-width: 700px) {
+  .pressFeaturePhoto {
+    min-height: 0;
+    aspect-ratio: 4 / 3;
+  }
 }

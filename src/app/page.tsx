@@ -2,6 +2,7 @@
 
 import {
   type CSSProperties,
+  type ReactNode,
   useCallback,
   useEffect,
   useRef,
@@ -94,7 +95,19 @@ const navItems = [
   { href: '#media', label: 'Press' },
 ]
 
-const pressNotes: Record<string, { eyebrow: string; description: string; note: string }> = {
+const pressNotes: Record<string, { eyebrow: string; description: ReactNode; note: string }> = {
+  'China Daily': {
+    eyebrow: 'China Daily · Vision China · September 2026',
+    description: (
+      <>
+        Live coverage of the London Vision China event{' '}
+        <em>Listen to Each Other, Open New Horizons</em>, opening with an ensemble performance of
+        guzheng, erhu and violin. I performed as part of the opening programme, bringing music into a
+        wider conversation about cultural dialogue and connection.
+      </>
+    ),
+    note: 'Vision China · September 2026',
+  },
   CCTV: {
     eyebrow: 'China Central Television · Broadcast',
     description:
@@ -114,6 +127,10 @@ const pressNotes: Record<string, { eyebrow: string; description: string; note: s
     note: 'Mid-Autumn feature · October 2025',
   },
 }
+
+const pressLogoStyle = (width: number): CSSProperties & { '--press-logo-width': string } => ({
+  '--press-logo-width': `${width}px`,
+})
 
 const describeEngagement = (tags: string[]) => {
   const hasWorkshop = tags.includes('workshop')
@@ -1231,6 +1248,7 @@ export default function InkResonancePage() {
                   aria-selected={activePressId === item.id}
                   aria-controls={`press-${item.id}`}
                   className={activePressId === item.id ? styles.pressTabActive : undefined}
+                  style={pressLogoStyle(item.logoWidth ?? 150)}
                   onKeyDown={(event) => {
                     const currentIndex = pressItems.findIndex((pressItem) => pressItem.id === item.id)
                     const isForward = event.key === 'ArrowRight' || event.key === 'ArrowDown'
@@ -1277,17 +1295,23 @@ export default function InkResonancePage() {
                 <section
                   className={`${styles.pressFeature} ${activePressId === item.id ? styles.pressFeatureActive : ''}`}
                   id={`press-${item.id}`}
+                  role="tabpanel"
+                  aria-labelledby={`press-tab-${item.id}`}
                   aria-hidden={activePressId !== item.id}
                   key={item.id}
                 >
                   <div
                     className={[
                       styles.pressFeatureVisual,
-                      item.videoUrl ? styles.pressFeatureVideo : styles.pressFeatureEditorial,
+                      item.videoUrl
+                        ? styles.pressFeatureVideo
+                        : item.featureImageUrl
+                          ? styles.pressFeaturePhoto
+                          : styles.pressFeatureEditorial,
                       item.id === '2' ? styles.pressFeaturePortrait : '',
                     ].filter(Boolean).join(' ')}
                   >
-                    {item.posterUrl || item.screenshotUrl ? (
+                    {item.featureImageUrl || item.posterUrl || item.screenshotUrl ? (
                       item.videoUrl ? (
                         <button
                           type="button"
@@ -1299,7 +1323,7 @@ export default function InkResonancePage() {
                           aria-label={`Play ${item.name} coverage video`}
                         >
                           <Image
-                            src={item.posterUrl || item.screenshotUrl || ''}
+                            src={item.featureImageUrl || item.posterUrl || item.screenshotUrl || ''}
                             alt=""
                             aria-hidden="true"
                             fill
@@ -1307,8 +1331,8 @@ export default function InkResonancePage() {
                             sizes="(max-width: 800px) 100vw, 48vw"
                           />
                           <Image
-                            src={item.posterUrl || item.screenshotUrl || ''}
-                            alt={`${item.name} coverage preview`}
+                            src={item.featureImageUrl || item.posterUrl || item.screenshotUrl || ''}
+                            alt={item.featureImageAlt ?? `${item.name} coverage preview`}
                             fill
                             className={styles.pressVisualSubject}
                             sizes="(max-width: 800px) 100vw, 48vw"
@@ -1321,10 +1345,10 @@ export default function InkResonancePage() {
                           target="_blank"
                           rel="noopener noreferrer"
                           className={styles.pressEditorialLink}
-                          aria-label={`Read the ${item.name} news report (opens in a new tab)`}
+                          aria-label={`${item.linkLabel ?? `Read the ${item.name} news report`} (opens in a new tab)`}
                         >
                           <Image
-                            src={item.posterUrl || item.screenshotUrl || ''}
+                            src={item.featureImageUrl || item.posterUrl || item.screenshotUrl || ''}
                             alt=""
                             aria-hidden="true"
                             fill
@@ -1332,8 +1356,8 @@ export default function InkResonancePage() {
                             sizes="(max-width: 800px) 100vw, 48vw"
                           />
                           <Image
-                            src={item.posterUrl || item.screenshotUrl || ''}
-                            alt={`${item.name} coverage preview`}
+                            src={item.featureImageUrl || item.posterUrl || item.screenshotUrl || ''}
+                            alt={item.featureImageAlt ?? `${item.name} coverage preview`}
                             fill
                             className={styles.pressVisualSubject}
                             sizes="(max-width: 800px) 100vw, 48vw"
@@ -1341,8 +1365,8 @@ export default function InkResonancePage() {
                         </a>
                       ) : (
                         <Image
-                          src={item.posterUrl || item.screenshotUrl || ''}
-                          alt={`${item.name} coverage preview`}
+                          src={item.featureImageUrl || item.posterUrl || item.screenshotUrl || ''}
+                          alt={item.featureImageAlt ?? `${item.name} coverage preview`}
                           fill
                           className={styles.pressVisualSubject}
                           sizes="(max-width: 800px) 100vw, 48vw"
@@ -1350,7 +1374,7 @@ export default function InkResonancePage() {
                       )
                     ) : null}
                     <span className={styles.pressVisualLabel}>
-                      {item.videoUrl ? 'Broadcast film' : 'Print edition'}
+                      {item.mediaLabel ?? (item.videoUrl ? 'Broadcast film' : 'Print edition')}
                     </span>
                   </div>
                   <div className={styles.pressFeatureCopy}>
@@ -1362,9 +1386,9 @@ export default function InkResonancePage() {
                         href={item.link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        aria-label={`Read the ${item.name} coverage (opens in a new tab)`}
+                        aria-label={`${item.linkLabel ?? `Read the ${item.name} coverage`} (opens in a new tab)`}
                       >
-                        Read the coverage <ArrowUpRight size={15} />
+                        {item.linkLabel ?? 'Read the coverage'} <ArrowUpRight size={15} />
                       </a>
                     ) : (
                       <span className={styles.pressUnavailable}>

@@ -1,6 +1,6 @@
 'use client'
 
-import { type CSSProperties, useCallback, useEffect, useRef, useState } from 'react'
+import { type CSSProperties, type ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import {
   ArrowUpRight,
@@ -56,7 +56,19 @@ const socialLinks = [
   { id: 'whatsapp', name: 'WhatsApp', qrCode: '/images/social/whatsapp-qr.jpg' },
 ]
 
-const pressNotes: Record<string, { eyebrow: string; description: string; note: string }> = {
+const pressNotes: Record<string, { eyebrow: string; description: ReactNode; note: string }> = {
+  'China Daily': {
+    eyebrow: 'China Daily · Vision China · September 2026',
+    description: (
+      <>
+        Live coverage of the London Vision China event{' '}
+        <em>Listen to Each Other, Open New Horizons</em>, opening with an ensemble performance of
+        guzheng, erhu and violin. I performed as part of the opening programme, bringing music into a
+        wider conversation about cultural dialogue and connection.
+      </>
+    ),
+    note: 'Vision China · September 2026',
+  },
   CCTV: {
     eyebrow: 'China Central Television · Broadcast',
     description:
@@ -803,11 +815,11 @@ export default function InkExplorationPage() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className={`${styles.pressVisual} ${styles.inkEdge} ${styles.tonalImage}`}
-                aria-label={`Read the ${activePress.name} coverage (opens in a new tab)`}
+                aria-label={`${activePress.linkLabel ?? `Read the ${activePress.name} coverage`} (opens in a new tab)`}
               >
                 <Image
-                  src={activePress.posterUrl || activePress.screenshotUrl || ''}
-                  alt={`${activePress.name} coverage preview`}
+                  src={activePress.featureImageUrl || activePress.posterUrl || activePress.screenshotUrl || ''}
+                  alt={activePress.featureImageAlt ?? `${activePress.name} coverage preview`}
                   fill
                   sizes="(max-width: 860px) 92vw, 46vw"
                 />
@@ -824,7 +836,7 @@ export default function InkExplorationPage() {
                   rel="noopener noreferrer"
                   className={styles.strokeLink}
                 >
-                  Read the coverage <ArrowUpRight size={12} />
+                  {activePress.linkLabel ?? 'Read the coverage'} <ArrowUpRight size={12} />
                 </a>
               ) : (
                 <p className={styles.pressUnavailable}>Broadcast only — no online article</p>
