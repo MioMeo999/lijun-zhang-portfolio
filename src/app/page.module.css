@@ -2339,7 +2339,7 @@
   border: 0;
   background: rgba(20, 17, 14, .78);
   cursor: pointer;
-  animation: memoirBackdropIn .18s ease-out both;
+  transition: opacity 220ms var(--ease-out);
   will-change: opacity;
 }
 
@@ -2351,18 +2351,38 @@
   max-height: 90vh;
   grid-template-columns: minmax(0, 1.15fr) minmax(330px, .85fr);
   overflow: hidden;
+  opacity: 1;
+  transform: translateY(0);
   background: var(--paper);
   box-shadow: 0 40px 110px rgba(0, 0, 0, .4);
-  animation: memoirPanelIn .24s var(--ease-out) both;
+  transition:
+    opacity 260ms var(--ease-out),
+    transform 260ms var(--ease-out);
   will-change: opacity, transform;
 }
 
 .memoirModalPanelClosing {
-  animation: memoirPanelOut .18s ease-in both;
+  opacity: 0;
+  transform: translateY(8px);
+  transition-duration: 180ms;
+  transition-timing-function: cubic-bezier(.4, 0, 1, 1);
 }
 
 .memoirModalClosing .memoirModalBackdrop {
-  animation: memoirBackdropOut .18s ease-in both;
+  opacity: 0;
+  transition-duration: 180ms;
+  transition-timing-function: cubic-bezier(.4, 0, 1, 1);
+}
+
+@starting-style {
+  .memoirModalBackdrop {
+    opacity: 0;
+  }
+
+  .memoirModalPanel {
+    opacity: 0;
+    transform: translateY(12px);
+  }
 }
 
 .memoirModalClose {
@@ -2502,38 +2522,6 @@
 
 .memoirModalActions a {
   margin-top: 0;
-}
-
-@keyframes memoirBackdropIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes memoirBackdropOut {
-  from { opacity: 1; }
-  to { opacity: 0; }
-}
-
-@keyframes memoirPanelIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px) scale(.995);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes memoirPanelOut {
-  from {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-  to {
-    opacity: 0;
-    transform: translateY(6px) scale(.995);
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -5912,28 +5900,6 @@
     transform var(--hover-slow) var(--ease-out);
 }
 
-/* The copy follows the panel as one quiet secondary gesture. */
-.memoirModalCopy > * {
-  animation: memoirCopyIn .18s var(--ease-out) 80ms both;
-}
-
-.memoirModalPanelClosing .memoirModalCopy > * {
-  animation: none;
-  opacity: 1;
-  transform: none;
-}
-
-@keyframes memoirCopyIn {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .researchPoster > a {
   transition:
     box-shadow var(--hover-slow) var(--ease-out),
@@ -6093,8 +6059,7 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .archiveMemoirCard:hover .archiveMemoirPhoto img,
-  .archiveMemoirCard:focus-within .archiveMemoirPhoto img {
+  .archiveMemoirCard:hover .archiveMemoirPhoto img {
     transform: scale(1.015);
   }
 
@@ -6165,7 +6130,6 @@
   .scrollCue,
   .affiliations,
   .motionReady .chapterVisible .archiveMemoirCard,
-  .memoirModalCopy > *,
   .pressFeatureActive,
   .pressFeatureActive .pressFeatureCopy,
   .videoGrid a:hover .videoPlay {

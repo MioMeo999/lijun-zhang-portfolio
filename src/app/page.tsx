@@ -1518,8 +1518,12 @@ export default function InkResonancePage() {
           />
           <div
             className={`${styles.memoirModalPanel} ${isMemoirClosing ? styles.memoirModalPanelClosing : ''}`}
-            onAnimationEnd={(event) => {
-              if (!isMemoirClosing || event.target !== event.currentTarget) return
+            onTransitionEnd={(event) => {
+              if (
+                !isMemoirClosing ||
+                event.target !== event.currentTarget ||
+                event.propertyName !== 'transform'
+              ) return
 
               setSelectedEngagement(null)
               setIsMemoirClosing(false)
