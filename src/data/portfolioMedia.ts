@@ -72,6 +72,14 @@ export const performanceVideos: PerformanceVideo[] = [
     category: 'Shorts',
     featured: false,
   },
+  {
+    id: '10',
+    title: 'Guzheng + Chinese R&B Live',
+    youtubeId: 'MHH75MJX_ng',
+    thumbnailUrl: 'https://i.ytimg.com/vi/MHH75MJX_ng/hqdefault.jpg',
+    category: 'Cross-Cultural',
+    featured: false,
+  },
 ]
 
 export type PressItem = {

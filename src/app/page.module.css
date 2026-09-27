@@ -2205,8 +2205,7 @@
   opacity: .72;
 }
 
-.archiveMemoirCard:hover,
-.archiveMemoirCard:focus-within {
+.archiveMemoirCard:hover {
   z-index: 7;
   transform: translateY(calc(var(--memoir-lift) - 9px)) rotate(0) scale(1.012);
 }
@@ -2217,26 +2216,22 @@
   outline-offset: 5px;
 }
 
-.archiveMemoirCard:hover .archiveMemoirPin,
-.archiveMemoirCard:focus-within .archiveMemoirPin {
+.archiveMemoirCard:hover .archiveMemoirPin {
   transform: translateX(-50%) scale(1.16);
 }
 
-.archiveMemoirCard:hover .archiveMemoirPhoto,
-.archiveMemoirCard:focus-within .archiveMemoirPhoto {
+.archiveMemoirCard:hover .archiveMemoirPhoto {
   box-shadow:
     0 36px 74px rgba(48, 38, 30, .18),
     0 8px 20px rgba(48, 38, 30, .1);
 }
 
-.archiveMemoirCard:hover .archiveMemoirPhoto img,
-.archiveMemoirCard:focus-within .archiveMemoirPhoto img {
+.archiveMemoirCard:hover .archiveMemoirPhoto img {
   filter: saturate(1) contrast(1.04);
   transform: scale(1.035);
 }
 
-.archiveMemoirCard:hover .archiveMemoirCaption,
-.archiveMemoirCard:focus-within .archiveMemoirCaption {
+.archiveMemoirCard:hover .archiveMemoirCaption {
   box-shadow:
     0 21px 44px rgba(48, 38, 30, .14),
     inset 0 0 0 1px rgba(31, 28, 24, .075);
@@ -6253,5 +6248,88 @@
   .pressFeaturePhoto {
     min-height: 0;
     aspect-ratio: 4 / 3;
+  }
+}
+
+/* Final interaction polish: keep pointer motion separate from keyboard focus. */
+@media (hover: hover) and (pointer: fine) {
+  .heroPortraitFrame {
+    transition: transform var(--hover-slow) var(--ease-out);
+  }
+
+  .heroPortraitFrame::before {
+    transition: transform 700ms var(--ease-out);
+  }
+
+  .heroPortraitFrame:hover {
+    transform: translateY(-4px);
+  }
+
+  .heroPortraitFrame:hover::before {
+    transform: translateY(-3px) scale(1.025);
+  }
+}
+
+.qrModal > .mediaBackdrop {
+  animation: qrBackdropIn 260ms ease-out both;
+}
+
+.qrModalPanel {
+  animation: qrPanelIn 360ms var(--ease-out) both;
+}
+
+@keyframes qrBackdropIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes qrPanelIn {
+  from {
+    opacity: 0;
+    transform: translateY(9px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Give each outlet the same quiet, paper-mounted cover treatment. */
+.pressFeatureVisual {
+  filter: drop-shadow(0 22px 34px rgba(48, 38, 30, .14));
+  transform: rotate(-.55deg);
+  transform-origin: 52% 48%;
+  transition: transform var(--hover-slow) var(--ease-out);
+}
+
+.pressFeatureVisual:hover,
+.pressFeatureVisual:has(:focus-visible) {
+  transform: rotate(0deg);
+}
+
+.pressFeatureVideo .pressVideoTrigger {
+  clip-path: none;
+}
+
+.pressFeatureEditorial .pressVisualSubject {
+  animation: none;
+  transform: scale(.96) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroPortraitFrame,
+  .heroPortraitFrame::before,
+  .qrModal > .mediaBackdrop,
+  .qrModalPanel,
+  .pressFeatureVisual {
+    animation: none;
+    transition: none;
+  }
+
+  .heroPortraitFrame:hover,
+  .heroPortraitFrame:hover::before,
+  .pressFeatureVisual:hover,
+  .pressFeatureVisual:has(:focus-visible) {
+    transform: none;
   }
 }
