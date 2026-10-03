@@ -30,6 +30,7 @@ import {
 } from '@/data/portfolioMedia'
 import { engagementArchive } from '@/data/portfolioEngagements'
 import styles from './page.module.css'
+import mobileModalStyles from './archiveModalMobile.module.css'
 
 const Instagram = createLucideIcon('Instagram', [
   ['rect', { width: '20', height: '20', x: '2', y: '2', rx: '5', ry: '5', key: 'instagram-frame' }],
@@ -170,6 +171,7 @@ const portraitArchiveImages = new Set([
 ])
 
 const wideArchiveImages = new Set([
+  '/images/timeline/manchester-mid-autumn-2026.jpg',
   '/images/timeline/vision-china-london-2026.jpg',
   '/images/timeline/lihua-school-awards-2024.jpg',
   '/images/timeline/wu-fest-teaser-2025.jpg',
@@ -290,6 +292,7 @@ export default function InkResonancePage() {
           : []),
       ]
     : []
+  const selectedEngagementHasLongResourceList = selectedEngagementResources.length > 3
 
   const openMemoir = useCallback((item: (typeof engagementArchive)[number], trigger: HTMLElement | null) => {
     memoirTriggerRef.current = trigger
@@ -346,7 +349,7 @@ export default function InkResonancePage() {
         >
           <Image
             src={item.images[0]}
-            alt={item.event}
+            alt={item.imageAlt ?? item.event}
             fill
             sizes="(max-width: 560px) 88vw, (max-width: 800px) 48vw, (max-width: 1050px) 42vw, 31vw"
             loading={index < 2 ? 'eager' : 'lazy'}
@@ -881,7 +884,7 @@ export default function InkResonancePage() {
               </div>
             </div>
             <div className={styles.heroActions}>
-              <a href="#archive">Twenty-two rooms</a>
+              <a href="#archive">Twenty-four rooms</a>
               <a href="#videos"><Play size={11} fill="currentColor" /> Listen</a>
             </div>
           </div>
@@ -1505,7 +1508,11 @@ export default function InkResonancePage() {
 
       {selectedEngagement && (
         <div
-          className={`${styles.memoirModal} ${isMemoirClosing ? styles.memoirModalClosing : ''}`}
+          className={[
+            styles.memoirModal,
+            selectedEngagementHasLongResourceList ? mobileModalStyles.scrollableClose : '',
+            isMemoirClosing ? styles.memoirModalClosing : '',
+          ].filter(Boolean).join(' ')}
           role="dialog"
           aria-modal="true"
           aria-labelledby="memoir-modal-title"
@@ -1531,7 +1538,7 @@ export default function InkResonancePage() {
           >
             <button
               type="button"
-              className={styles.memoirModalClose}
+              className={`${styles.memoirModalClose} ${selectedEngagementHasLongResourceList ? mobileModalStyles.closeButton : ''}`}
               ref={memoirCloseRef}
               onClick={closeMemoir}
               aria-label="Close memory"
@@ -1539,7 +1546,7 @@ export default function InkResonancePage() {
               <X size={19} />
             </button>
             <div
-              className={`${styles.memoirModalImage} ${selectedEngagementImageIsWide ? styles.memoirModalImageWide : ''}`}
+              className={`${styles.memoirModalImage} ${selectedEngagementImageIsWide ? styles.memoirModalImageWide : ''} ${selectedEngagementHasLongResourceList && selectedEngagementImageIsWide ? mobileModalStyles.clipWideImage : ''}`}
             >
               {selectedEngagementImageIsWide && (
                 <Image
@@ -1553,7 +1560,7 @@ export default function InkResonancePage() {
               )}
               <Image
                 src={selectedEngagement.images[0]}
-                alt={selectedEngagement.event}
+                alt={selectedEngagement.imageAlt ?? selectedEngagement.event}
                 fill
                 sizes="(max-width: 800px) 92vw, 56vw"
                 className={selectedEngagementImageIsWide ? styles.memoirModalImageForeground : undefined}

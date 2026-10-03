@@ -299,7 +299,7 @@ export default function InkExplorationPage() {
       <span className={styles.archiveFrame}>
         <Image
           src={item.images[0]}
-          alt={item.event}
+          alt={item.imageAlt ?? item.event}
           fill
           sizes="(max-width: 560px) 92vw, (max-width: 860px) 46vw, 30vw"
           loading={index < 3 ? 'eager' : 'lazy'}
@@ -458,7 +458,7 @@ export default function InkExplorationPage() {
             </div>
             <div className={styles.heroActions} data-ink>
               <a href="#archive" className={styles.strokeLink}>
-                Twenty-two rooms
+                Twenty-four rooms
               </a>
               <a href="#videos" className={`${styles.strokeLink} ${styles.strokeLinkQuiet}`}>
                 <Play size={10} fill="currentColor" /> Listen
@@ -687,7 +687,7 @@ export default function InkExplorationPage() {
 
           <div className={styles.archiveCount} data-ink>
             <p className={styles.micro}>{engagementArchive.length} engagements</p>
-            <p className={styles.annotation}>February 2024 — June 2026</p>
+            <p className={styles.annotation}>February 2024 — September 2026</p>
           </div>
 
           <div className={styles.archiveGrid}>{preview.map(renderArchiveItem)}</div>
@@ -940,7 +940,7 @@ export default function InkExplorationPage() {
             <div className={styles.modalImage}>
               <Image
                 src={engagement.images[0]}
-                alt={engagement.event}
+                alt={engagement.imageAlt ?? engagement.event}
                 fill
                 sizes="(max-width: 860px) 92vw, 56vw"
               />

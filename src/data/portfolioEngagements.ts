@@ -13,12 +13,47 @@ export type ArchiveEngagementResource = {
 export type ArchiveEngagement = Omit<Performance, 'description' | 'link'> & {
   link: string
   linkLabel?: string
+  imageAlt?: string
   videoLink?: string
   externalResources?: ArchiveEngagementResource[]
   modalCopy?: ArchiveEngagementModalCopy
 }
 
 export const engagementArchive: ArchiveEngagement[] = [
+  {
+    id: 'manchester-mid-autumn-2026',
+    date: '2026-09-19',
+    venue: 'Manchester Chinatown',
+    event: 'Manchester Mid-Autumn Festival · 2026',
+    tags: ['performance', 'community'],
+    images: ['/images/timeline/manchester-mid-autumn-2026.jpg'],
+    imageAlt: 'A performer in red traditional clothing playing guzheng under stage lights.',
+    link: 'https://mp.weixin.qq.com/s/41DfVhEGrquzXycF-KkAEQ',
+    linkLabel: 'Read WeChat report on Tang Rui’s attendance',
+    externalResources: [
+      {
+        label: 'Read Xinhua report',
+        href: 'https://www.news.cn/20260921/ea47ac3f95a4486594e93a1cf4ae8449/c.html',
+      },
+      {
+        label: 'View Manchester Consulate coverage',
+        href: 'https://manchester.china-consulate.gov.cn/chn/xwdt/202609/t20260920_12026496.htm',
+      },
+      {
+        label: 'Watch CCTV News coverage',
+        href: 'https://tv.cctv.com/2026/09/25/VIDEX5ALfncoardo4YFy58Kw260925.shtml',
+      },
+      {
+        label: 'Visit official event page',
+        href: 'https://www.moonchester.uk/visit',
+      },
+    ],
+    modalCopy: {
+      subtitle: 'Mid-Autumn in Manchester Chinatown',
+      description:
+        'I performed guzheng and contributed to the organisation and delivery of the 2026 Manchester Mid-Autumn Festival in Chinatown, a two-day community celebration bringing Chinese traditional arts, participatory activities and cross-cultural exchange into the city centre.',
+    },
+  },
   {
     id: 'vision-china-london-2026',
     date: '2026-09-17',
