@@ -6297,3 +6297,28 @@
     transform: none;
   }
 }
+
+/* Keep compact press previews steady while preserving each source image's shape. */
+@media (max-width: 800px) {
+  .pressFeatureVisual {
+    height: clamp(260px, 78vw, 360px);
+  }
+
+  .pressFeatureVisual.pressFeaturePhoto,
+  .pressFeatureVisual.pressFeatureVideo,
+  .pressFeatureVisual.pressFeatureEditorial,
+  .pressFeatureVisual.pressFeaturePortrait {
+    min-height: 0;
+    aspect-ratio: auto;
+  }
+
+  .pressFeatureVisual.pressFeatureVideo .pressVisualSubject {
+    object-fit: contain !important;
+    transform: none !important;
+  }
+
+  .pressFeatureVisual.pressFeatureVideo .pressVideoTrigger:hover .pressVisualSubject,
+  .pressFeatureVisual.pressFeatureVideo .pressVideoTrigger:focus-visible .pressVisualSubject {
+    transform: none !important;
+  }
+}
