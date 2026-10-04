@@ -1566,7 +1566,9 @@ export default function InkResonancePage() {
                 className={selectedEngagementImageIsWide ? styles.memoirModalImageForeground : undefined}
               />
             </div>
-            <div className={styles.memoirModalCopy}>
+            <div
+              className={`${styles.memoirModalCopy} ${selectedEngagementHasLongResourceList ? mobileModalStyles.scrollableCopy : ''}`}
+            >
               <span>
                 {formatEngagementDate(selectedEngagement.date)} · {selectedEngagement.tags.join(' · ')}
               </span>

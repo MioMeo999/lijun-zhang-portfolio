@@ -1,3 +1,14 @@
+@media (min-width: 801px) {
+  .scrollableCopy {
+    box-sizing: border-box;
+    max-height: 90vh;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    justify-content: flex-start;
+  }
+}
+
 @media (max-width: 800px) {
   .scrollableClose .closeButton {
     position: sticky;

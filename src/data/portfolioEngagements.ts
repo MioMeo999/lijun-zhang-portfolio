@@ -29,7 +29,7 @@ export const engagementArchive: ArchiveEngagement[] = [
     images: ['/images/timeline/manchester-mid-autumn-2026.jpg'],
     imageAlt: 'A performer in red traditional clothing playing guzheng under stage lights.',
     link: 'https://mp.weixin.qq.com/s/41DfVhEGrquzXycF-KkAEQ',
-    linkLabel: 'Read WeChat report on Tang Rui’s attendance',
+    linkLabel: 'View WeChat coverage',
     externalResources: [
       {
         label: 'Read Xinhua report',
