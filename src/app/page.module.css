@@ -1203,18 +1203,25 @@
 }
 
 .qrModal {
+  /* Padding and the panel's non-QR height feed the size cap on .qrModalPanel. */
+  --qr-pad: clamp(14px, 4vw, 24px);
+  --qr-chrome: 122px;
   position: fixed;
   z-index: 1100;
   inset: 0;
   display: grid;
   place-items: center;
-  padding: 24px;
+  padding: var(--qr-pad);
 }
 
 .qrModalPanel {
   position: relative;
   z-index: 2;
-  width: min(480px, 92vw);
+  /* The square panel fits the padded box (92vw overflowed it and sat off-centre
+     on phones) and never grows taller than the viewport, so the QR stays whole
+     in landscape. Panel height is its width plus --qr-chrome. */
+  width: min(480px, 100%, calc(100vh - 2 * var(--qr-pad) - var(--qr-chrome)));
+  width: min(480px, 100%, calc(100dvh - 2 * var(--qr-pad) - var(--qr-chrome)));
   border: 1px solid rgba(255, 255, 255, .25);
   background: var(--paper);
   color: var(--ink);
@@ -1755,7 +1762,8 @@
 }
 
 .qrList > a:hover::before,
-.qrList > a:focus-visible::before {
+.qrList > a:focus-visible::before,
+.qrList > a[data-held]::before {
   opacity: 1;
 }
 
@@ -3094,21 +3102,6 @@
   transform: scale(1.035);
 }
 
-.qrModalPanel {
-  animation: qrEnter .4s var(--ease-out) both;
-}
-
-@keyframes qrEnter {
-  from {
-    opacity: 0;
-    transform: translateY(18px) scale(.96);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
 .qrModalImage::after {
   display: none;
 }
@@ -3969,8 +3962,17 @@
     linear-gradient(145deg, rgba(255, 255, 255, .035), rgba(255, 255, 255, .008));
 }
 
+/*
+ * While its dialog is up the tile keeps its hover look (`data-held`, set by
+ * ContactQrCodes.tsx). The scrim takes the pointer and focus moves to the
+ * dialog, so :hover and :focus-visible both drop at once — and the tile would
+ * slide back down behind the fading scrim as the dialog arrives, then lift
+ * again as it leaves. A pointer close away from the tile releases the hold as
+ * the exit begins, so the tile settles under the scrim, not after it.
+ */
 .qrList > a:hover,
-.qrList > a:focus-visible {
+.qrList > a:focus-visible,
+.qrList > a[data-held] {
   border-color: rgba(244, 239, 231, .42);
   background: rgba(255, 255, 255, .045);
   box-shadow: 0 24px 55px rgba(0, 0, 0, .24);
@@ -3978,12 +3980,14 @@
 }
 
 .qrList > a:hover .qrImage::after,
-.qrList > a:focus-visible .qrImage::after {
+.qrList > a:focus-visible .qrImage::after,
+.qrList > a[data-held] .qrImage::after {
   opacity: .65;
 }
 
 .qrList > a:hover img,
-.qrList > a:focus-visible img {
+.qrList > a:focus-visible img,
+.qrList > a[data-held] img {
   filter: none !important;
   transform: scale(1.018);
 }
@@ -6234,27 +6238,105 @@
   }
 }
 
+/*
+ * QR dialog: one gesture. The panel and the scrim share a single duration and
+ * curve, so they arrive — and leave — together, and the only thing that moves
+ * is a faint drift of the panel (no scale: it would resample the QR's fine
+ * pattern mid-flight and leave it soft until the transition ends).
+ *
+ * Enter and exit are transitions on the same properties, so closing mid-open
+ * (or reopening mid-close) reverses from wherever the panel is.
+ *
+ * The scrim is flat on purpose: a blur on a full-viewport layer whose opacity
+ * is animating is re-rendered every frame, and at 90% opacity it barely shows.
+ *
+ * Tuning knobs. `--qr-exit` is also read by ContactQrCodes.tsx to time the
+ * unmount, so changing it here needs no matching edit there.
+ */
+.qrModal {
+  /* Enter reaches 50% by ~65ms and 90% by ~180ms; exit mirrors that, 90% by ~200ms. */
+  --qr-enter: 340ms;
+  --qr-exit: 300ms;
+  /* Out: answers the click at once, then decelerates. In-out for the exit: it
+     leaves as deliberately as it arrived instead of speeding up as it vanishes. */
+  --qr-ease-enter: cubic-bezier(.2, .55, .3, 1);
+  --qr-ease-exit: cubic-bezier(.4, 0, .3, 1);
+  --qr-drift: 4px;
+}
+
 .qrModal > .mediaBackdrop {
-  animation: qrBackdropIn 260ms ease-out both;
+  opacity: 1;
+  backdrop-filter: none;
+  transition: opacity var(--qr-enter) var(--qr-ease-enter);
 }
 
 .qrModalPanel {
-  animation: qrPanelIn 360ms var(--ease-out) both;
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity var(--qr-enter) var(--qr-ease-enter),
+    transform var(--qr-enter) var(--qr-ease-enter);
 }
 
-@keyframes qrBackdropIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.qrModalClosing > .mediaBackdrop {
+  opacity: 0;
+  transition-duration: var(--qr-exit);
+  transition-timing-function: var(--qr-ease-exit);
 }
 
-@keyframes qrPanelIn {
-  from {
+.qrModalClosing .qrModalPanel {
+  opacity: 0;
+  transform: translateY(var(--qr-drift));
+  transition-duration: var(--qr-exit);
+  transition-timing-function: var(--qr-ease-exit);
+}
+
+@starting-style {
+  .qrModal > .mediaBackdrop {
     opacity: 0;
-    transform: translateY(9px);
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+
+  .qrModalPanel {
+    opacity: 0;
+    transform: translateY(var(--qr-drift));
+  }
+}
+
+/*
+ * Short, wide viewports (landscape phones): stacking the panel would leave a
+ * postage-stamp QR, so seat the code beside its label and size it from the
+ * viewport height instead.
+ */
+@media (max-height: 560px) and (min-width: 560px) {
+  .qrModal {
+    --qr-side: calc(100vh - 2 * var(--qr-pad) - 2px);
+    --qr-side: calc(100dvh - 2 * var(--qr-pad) - 2px);
+  }
+
+  .qrModalPanel {
+    display: grid;
+    width: min(100%, 760px, calc(var(--qr-side) + 300px));
+    grid-template-columns: var(--qr-side) minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      'image head'
+      'image note';
+  }
+
+  .qrModalHead {
+    grid-area: head;
+  }
+
+  .qrModalImage {
+    grid-area: image;
+    margin: 14px;
+  }
+
+  .qrModalPanel > p {
+    grid-area: note;
+    align-self: end;
+    padding: 0 20px 18px;
+    text-align: left;
   }
 }
 
@@ -6287,6 +6369,12 @@
   .qrModalPanel,
   .pressFeatureVisual {
     animation: none;
+    transition: none;
+  }
+
+  /* The dialog is also unmounted immediately in this mode (ContactQrCodes.tsx). */
+  .qrModalClosing > .mediaBackdrop,
+  .qrModalClosing .qrModalPanel {
     transition: none;
   }
 

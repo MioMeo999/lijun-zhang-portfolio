@@ -31,6 +31,7 @@ import {
 import { engagementArchive } from '@/data/portfolioEngagements'
 import styles from './page.module.css'
 import mobileModalStyles from './archiveModalMobile.module.css'
+import { ContactQrCodes } from './ContactQrCodes'
 
 const Instagram = createLucideIcon('Instagram', [
   ['rect', { width: '20', height: '20', x: '2', y: '2', rx: '5', ry: '5', key: 'instagram-frame' }],
@@ -42,24 +43,6 @@ const Youtube = createLucideIcon('Youtube', [
   ['path', { d: 'M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17', key: 'youtube-frame' }],
   ['path', { d: 'm10 15 5-3-5-3z', key: 'youtube-play' }],
 ])
-
-const socialLinks = [
-  {
-    id: 'wechat',
-    name: 'WeChat',
-    qrCode: '/images/social/wechat-qr.png',
-  },
-  {
-    id: 'instagram',
-    name: 'Instagram',
-    qrCode: '/images/social/instagram-qr.png',
-  },
-  {
-    id: 'whatsapp',
-    name: 'WhatsApp',
-    qrCode: '/images/social/whatsapp-qr.jpg',
-  },
-]
 
 const socialProfiles = [
   {
@@ -258,20 +241,16 @@ export default function InkResonancePage() {
   const memoirTriggerRef = useRef<HTMLElement | null>(null)
   const pressVideoCloseRef = useRef<HTMLButtonElement>(null)
   const pressVideoTriggerRef = useRef<HTMLElement | null>(null)
-  const qrCloseRef = useRef<HTMLButtonElement>(null)
-  const qrTriggerRef = useRef<HTMLElement | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [selectedEngagement, setSelectedEngagement] = useState<(typeof engagementArchive)[number] | null>(null)
   const [isMemoirClosing, setIsMemoirClosing] = useState(false)
   const [activeSection, setActiveSection] = useState('story')
   const [activePressId, setActivePressId] = useState(pressItems[0].id)
   const [activePressVideoId, setActivePressVideoId] = useState<string | null>(null)
-  const [activeQrId, setActiveQrId] = useState<string | null>(null)
 
   const featuredVideos = performanceVideos.filter((video) => video.featured)
   const additionalVideos = performanceVideos.filter((video) => !video.featured)
   const activePressVideo = pressItems.find((item) => item.id === activePressVideoId && item.videoUrl)
-  const activeQr = socialLinks.find((social) => social.id === activeQrId)
   const sortedEngagements = [...engagementArchive].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   )
@@ -443,28 +422,6 @@ export default function InkResonancePage() {
       }
     }
   }, [activePressVideoId])
-
-  useEffect(() => {
-    if (!activeQrId) return
-
-    const trigger = qrTriggerRef.current
-    const previousOverflow = document.body.style.overflow
-    const closeQrOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setActiveQrId(null)
-    }
-
-    document.body.style.overflow = 'hidden'
-    qrCloseRef.current?.focus()
-    window.addEventListener('keydown', closeQrOnEscape)
-
-    return () => {
-      document.body.style.overflow = previousOverflow
-      window.removeEventListener('keydown', closeQrOnEscape)
-      if (trigger?.isConnected) {
-        window.requestAnimationFrame(() => trigger.focus())
-      }
-    }
-  }, [activeQrId])
 
   useEffect(() => {
     const root = siteRef.current
@@ -1475,33 +1432,7 @@ export default function InkResonancePage() {
                 })}
               </div>
             </div>
-            <div className={styles.qrList}>
-              {socialLinks.map((social) => (
-                <a
-                  href={`#qr-${social.id}`}
-                  key={social.id}
-                  aria-label={`Enlarge ${social.name} QR code`}
-                  aria-haspopup="dialog"
-                  aria-expanded={activeQrId === social.id}
-                  onClick={(event) => {
-                    event.preventDefault()
-                    qrTriggerRef.current = event.currentTarget
-                    setActiveQrId(social.id)
-                  }}
-                >
-                  <span className={styles.qrImage}>
-                    <Image
-                      src={social.qrCode}
-                      alt={`${social.name} QR code`}
-                      width={92}
-                      height={92}
-                    />
-                  </span>
-                  <span>{social.name}</span>
-                  <small>Tap to enlarge</small>
-                </a>
-              ))}
-            </div>
+            <ContactQrCodes />
           </div>
         </section>
       </main>
@@ -1594,42 +1525,6 @@ export default function InkResonancePage() {
                 </div>
               )}
             </div>
-          </div>
-        </div>
-      )}
-
-      {activeQr && (
-        <div
-          className={styles.qrModal}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="qr-modal-title"
-        >
-          <button
-            type="button"
-            className={styles.mediaBackdrop}
-            onClick={() => setActiveQrId(null)}
-            aria-label="Close QR code"
-          />
-          <div className={styles.qrModalPanel}>
-            <div className={styles.qrModalHead}>
-              <div>
-                <span>CONNECT / {activeQr.id.toUpperCase()}</span>
-                <strong id="qr-modal-title">{activeQr.name}</strong>
-              </div>
-              <button ref={qrCloseRef} type="button" onClick={() => setActiveQrId(null)} aria-label="Close">
-                <X size={20} />
-              </button>
-            </div>
-            <div className={styles.qrModalImage}>
-              <Image
-                src={activeQr.qrCode}
-                alt={`Enlarged ${activeQr.name} QR code`}
-                width={420}
-                height={420}
-              />
-            </div>
-            <p>Scan with your phone camera</p>
           </div>
         </div>
       )}
