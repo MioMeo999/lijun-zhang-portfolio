@@ -21,6 +21,22 @@ export type ArchiveEngagement = Omit<Performance, 'description' | 'link'> & {
 
 export const engagementArchive: ArchiveEngagement[] = [
   {
+    id: 'york-new-student-welcome-2026',
+    date: '2026-09-25',
+    venue: 'York',
+    event: 'York New Student Welcome · 2026',
+    tags: ['performance', 'community'],
+    images: ['/images/timeline/york-cssa-performance-2026.jpg'],
+    imageAlt: 'A trio performs erhu, guzheng and violin beneath a York Chinese Students and Scholars Association banner.',
+    link: 'http://www.chisa.edu.cn/exclusive/202610/t20261008_2111527816.html',
+    linkLabel: 'Read CHISA report',
+    modalCopy: {
+      subtitle: 'A moonlit welcome for new students',
+      description:
+        'I joined Zhang Hanzhi and Yu Jiacheng in an erhu, guzheng and violin trio to open the York Chinese Students and Scholars Association’s welcome for new students. York mayor Margaret Wells and University of York vice-chancellor Tracy Lightfoot welcomed the incoming students, while guests shared advice on study and life in York. Mooncakes brought a taste of home to the gathering.',
+    },
+  },
+  {
     id: 'manchester-mid-autumn-2026',
     date: '2026-09-19',
     venue: 'Manchester Chinatown',
