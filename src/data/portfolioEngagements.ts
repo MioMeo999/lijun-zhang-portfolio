@@ -17,6 +17,7 @@ export type ArchiveEngagement = Omit<Performance, 'description' | 'link'> & {
   videoLink?: string
   externalResources?: ArchiveEngagementResource[]
   modalCopy?: ArchiveEngagementModalCopy
+  scrollableCopy?: boolean
 }
 
 export const engagementArchive: ArchiveEngagement[] = [
@@ -30,6 +31,7 @@ export const engagementArchive: ArchiveEngagement[] = [
     imageAlt: 'A trio performs erhu, guzheng and violin beneath a York Chinese Students and Scholars Association banner.',
     link: 'http://www.chisa.edu.cn/exclusive/202610/t20261008_2111527816.html',
     linkLabel: 'Read CHISA report',
+    scrollableCopy: true,
     modalCopy: {
       subtitle: 'A moonlit welcome for new students',
       description:

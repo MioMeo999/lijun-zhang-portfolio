@@ -271,7 +271,8 @@ export default function InkResonancePage() {
           : []),
       ]
     : []
-  const selectedEngagementHasLongResourceList = selectedEngagementResources.length > 3
+  const selectedEngagementHasScrollableCopy =
+    selectedEngagementResources.length > 3 || selectedEngagement?.scrollableCopy === true
 
   const openMemoir = useCallback((item: (typeof engagementArchive)[number], trigger: HTMLElement | null) => {
     memoirTriggerRef.current = trigger
@@ -1441,7 +1442,7 @@ export default function InkResonancePage() {
         <div
           className={[
             styles.memoirModal,
-            selectedEngagementHasLongResourceList ? mobileModalStyles.scrollableClose : '',
+            selectedEngagementHasScrollableCopy ? mobileModalStyles.scrollableClose : '',
             isMemoirClosing ? styles.memoirModalClosing : '',
           ].filter(Boolean).join(' ')}
           role="dialog"
@@ -1469,7 +1470,7 @@ export default function InkResonancePage() {
           >
             <button
               type="button"
-              className={`${styles.memoirModalClose} ${selectedEngagementHasLongResourceList ? mobileModalStyles.closeButton : ''}`}
+              className={`${styles.memoirModalClose} ${selectedEngagementHasScrollableCopy ? mobileModalStyles.closeButton : ''}`}
               ref={memoirCloseRef}
               onClick={closeMemoir}
               aria-label="Close memory"
@@ -1477,7 +1478,7 @@ export default function InkResonancePage() {
               <X size={19} />
             </button>
             <div
-              className={`${styles.memoirModalImage} ${selectedEngagementImageIsWide ? styles.memoirModalImageWide : ''} ${selectedEngagementHasLongResourceList && selectedEngagementImageIsWide ? mobileModalStyles.clipWideImage : ''}`}
+              className={`${styles.memoirModalImage} ${selectedEngagementImageIsWide ? styles.memoirModalImageWide : ''} ${selectedEngagementHasScrollableCopy && selectedEngagementImageIsWide ? mobileModalStyles.clipWideImage : ''}`}
             >
               {selectedEngagementImageIsWide && (
                 <Image
@@ -1498,7 +1499,7 @@ export default function InkResonancePage() {
               />
             </div>
             <div
-              className={`${styles.memoirModalCopy} ${selectedEngagementHasLongResourceList ? mobileModalStyles.scrollableCopy : ''}`}
+              className={`${styles.memoirModalCopy} ${selectedEngagementHasScrollableCopy ? mobileModalStyles.scrollableCopy : ''}`}
             >
               <span>
                 {formatEngagementDate(selectedEngagement.date)} · {selectedEngagement.tags.join(' · ')}
