@@ -843,7 +843,7 @@ export default function InkResonancePage() {
               </div>
             </div>
             <div className={styles.heroActions}>
-              <a href="#archive">Twenty-four rooms</a>
+              <a href="#archive">Twenty-six rooms</a>
               <a href="#videos"><Play size={11} fill="currentColor" /> Listen</a>
             </div>
           </div>
