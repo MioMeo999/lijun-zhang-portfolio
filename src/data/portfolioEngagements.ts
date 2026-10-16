@@ -29,7 +29,6 @@ export const engagementArchive: ArchiveEngagement[] = [
     tags: ['performance', 'community'],
     images: [
       '/images/timeline/discover-guzheng-performance-2026.jpg',
-      '/images/timeline/discover-guzheng-performance-detail-2026.jpg',
       '/images/timeline/discover-guzheng-poster-portrait-2026.png',
       '/images/timeline/discover-guzheng-poster-landscape-2026.png',
     ],
@@ -40,10 +39,6 @@ export const engagementArchive: ArchiveEngagement[] = [
       {
         label: 'Read University of Leeds event preview',
         href: 'https://confucius.leeds.ac.uk/events/discover-the-guzheng-sounds-and-stories-from-china/',
-      },
-      {
-        label: 'View additional performance photo',
-        href: '/images/timeline/discover-guzheng-performance-detail-2026.jpg',
       },
       {
         label: 'View portrait event poster',
@@ -141,6 +136,12 @@ export const engagementArchive: ArchiveEngagement[] = [
     tags: ['performance', 'community'],
     images: ['/images/timeline/dragon-boat-festival-2026.jpg'],
     link: 'https://confucius.leeds.ac.uk/news/bci-partner-school-performs-at-uk-chinese-dragon-boat-festival/',
+    linkLabel: 'Read Business Confucius Institute report',
+    modalCopy: {
+      subtitle: 'Music and community at Salford’s UK Chinese Dragon Boat Festival',
+      description:
+        'I performed guzheng in the festival’s Chinese cultural programme in Salford, alongside Leeds New Vision Education Chinese School and the Business Confucius Institute.',
+    },
   },
   {
     id: 'summer-celebration-2026',
@@ -150,6 +151,18 @@ export const engagementArchive: ArchiveEngagement[] = [
     tags: ['workshop'],
     images: ['/images/timeline/summer-celebration-2026.jpg'],
     link: 'https://www.tickettailor.com/events/leedsuniversity72/2257192',
+    linkLabel: 'View event listing',
+    externalResources: [
+      {
+        label: 'Read the Sonic Belonging project report',
+        href: 'https://www.healthybuildingsnetwork.org/blog/sonic-belonging.html',
+      },
+    ],
+    modalCopy: {
+      subtitle: 'A Chinese and Indian music and dance performance',
+      description:
+        'I joined Chinese musicians and dancers alongside Indian performers at the University of Leeds Summer Celebration. The programme combined live music, including guzheng and dizi, with Indian dance.',
+    },
   },
   {
     id: 'sonic-belonging-2026',
@@ -159,6 +172,18 @@ export const engagementArchive: ArchiveEngagement[] = [
     tags: ['workshop'],
     images: ['/images/timeline/sonic-belonging-2026.jpg'],
     link: 'https://www.healthybuildingsnetwork.org/events/workshops/sonic/sonic.html',
+    linkLabel: 'View performance page',
+    externalResources: [
+      {
+        label: 'Read the Sonic Belonging project report',
+        href: 'https://www.healthybuildingsnetwork.org/blog/sonic-belonging.html',
+      },
+    ],
+    modalCopy: {
+      subtitle: 'Traditional Chinese music in the Wellbeing Hub',
+      description:
+        'I performed guzheng with an ensemble playing erhu, pipa, dizi and zhongruan, alongside a Chinese classical dancer. The informal lunchtime session invited University of Leeds staff and students to listen and learn about the instruments and their traditions.',
+    },
   },
   {
     id: '1',
@@ -168,6 +193,18 @@ export const engagementArchive: ArchiveEngagement[] = [
     tags: ['performance', 'community'],
     images: ['/images/timeline/swire-chinese-language-day-2026.jpg'],
     link: 'https://www.instagram.com/p/DZLekMkCAi8/',
+    linkLabel: 'View event post',
+    externalResources: [
+      {
+        label: 'Read a Swire Chinese Language Day reflection',
+        href: 'https://www.linkedin.com/pulse/planting-seeds-reflections-from-swire-chinese-language-claudio-gebbia-nirle',
+      },
+    ],
+    modalCopy: {
+      subtitle: 'A decade of Chinese language education',
+      description:
+        'I performed at the 10th Swire Chinese Language Day at The Manchester Grammar School. The anniversary gathering brought together educators and advocates to discuss Mandarin learning and teaching in the UK.',
+    },
   },
   {
     id: '19',
@@ -177,6 +214,12 @@ export const engagementArchive: ArchiveEngagement[] = [
     tags: ['workshop', 'performance'],
     images: ['/images/timeline/silk-road-workshop-2026.jpg'],
     link: 'https://confucius.leeds.ac.uk/news/incredible-musical-workshop-brings-the-silk-road-to-life/',
+    linkLabel: 'Read Business Confucius Institute report',
+    modalCopy: {
+      subtitle: 'A musical journey along the Silk Road',
+      description:
+        'I performed in a University of Leeds workshop that used live music to explore the Silk Road’s history and cultural exchange. The session connected Chinese musical traditions with the stories of the route.',
+    },
   },
   {
     id: '2',
@@ -186,6 +229,18 @@ export const engagementArchive: ArchiveEngagement[] = [
     tags: ['performance'],
     images: ['/images/timeline/york-spring-gala-2026.jpg'],
     link: 'https://mp.weixin.qq.com/s/3LNQJyK7oWLUuMboLG5xbw',
+    linkLabel: 'View York CSSA coverage',
+    externalResources: [
+      {
+        label: 'Read Chinese Consulate report',
+        href: 'https://www.cscse.edu.cn/manchester/zytz/2026031723251678498/index.html',
+      },
+    ],
+    modalCopy: {
+      subtitle: 'A Spring Festival gala in York',
+      description:
+        'I performed at the York Chinese Students and Scholars Association’s 2026 Spring Festival Gala on 15 March. More than 600 people, including York’s former mayor and the University of York vice-chancellor, attended the evening of student music and dance.',
+    },
   },
   {
     id: '3',
@@ -195,6 +250,12 @@ export const engagementArchive: ArchiveEngagement[] = [
     tags: ['performance'],
     images: ['/images/timeline/lubs-global-impact-day-2026.jpeg'],
     link: 'https://students.business.leeds.ac.uk/student-community/gid26/',
+    linkLabel: 'View Global Impact Day programme',
+    modalCopy: {
+      subtitle: 'Music and dance at the first Global Impact Day',
+      description:
+        'I opened Leeds University Business School’s first Global Impact Day with a guzheng performance alongside Indian dance. The day brought students, staff, alumni and partners together around global learning and community impact.',
+    },
   },
   {
     id: '4',
@@ -204,6 +265,12 @@ export const engagementArchive: ArchiveEngagement[] = [
     tags: ['workshop', 'performance'],
     images: ['/images/timeline/forest-school-culture-week-2026.jpg'],
     link: 'https://www.instagram.com/p/DVHAlapDZe-/',
+    linkLabel: 'View Culture Week post',
+    modalCopy: {
+      subtitle: 'Chinese music at Culture Week',
+      description:
+        'I performed guzheng for pupils at Forest Preparatory School during Culture Week. The visit introduced Chinese music and culture through a live performance and workshop activities.',
+    },
   },
   {
     id: '5',
@@ -213,6 +280,12 @@ export const engagementArchive: ArchiveEngagement[] = [
     tags: ['community', 'workshop', 'performance'],
     images: ['/images/timeline/lychee-red-horse-2026.jpg'],
     link: 'https://southleedslife.com/lychee-red-welcome-the-year-of-the-horse/',
+    linkLabel: 'Read South Leeds Life coverage',
+    modalCopy: {
+      subtitle: 'A Lunar New Year gathering for the Lychee Red community',
+      description:
+        'Lychee Red welcomed the Year of the Horse at Beeston Village Community Centre with dumpling making, calligraphy, singing, dancing and lantern crafting. I joined the celebration with a guzheng performance for the local Chinese seniors group.',
+    },
   },
   {
     id: '6',
@@ -222,6 +295,12 @@ export const engagementArchive: ArchiveEngagement[] = [
     tags: ['performance', 'workshop', 'community'],
     images: ['/images/timeline/leeds-chinese-new-year-2026.jpg'],
     link: 'https://confucius.leeds.ac.uk/news/leeds-biggest-chinese-new-year-celebration-once-again-a-big-success/',
+    linkLabel: 'Read Business Confucius Institute report',
+    modalCopy: {
+      subtitle: 'Year of the Horse celebrations at Merrion Centre',
+      description:
+        'I performed guzheng during the opening weekend of Leeds’s Chinese New Year programme at Merrion Centre on 14 February. Leeds Chinese Community School led a day of live music, dance and hands-on cultural workshops.',
+    },
   },
   {
     id: '7',
@@ -231,6 +310,22 @@ export const engagementArchive: ArchiveEngagement[] = [
     tags: ['performance'],
     images: ['/images/timeline/york-resident-festival-2026.jpg'],
     link: 'https://mp.weixin.qq.com/s/3aS-baCHQU16xxy5WQtPKw',
+    linkLabel: 'View York CSSA coverage',
+    externalResources: [
+      {
+        label: 'View concert listing',
+        href: 'https://www.eventbrite.co.uk/e/free-concert-of-chinese-music-tickets-1980863147999',
+      },
+      {
+        label: 'See Merchant Taylors’ Hall event listing',
+        href: 'https://www.merchant-taylors-york.org/whats-on-at-the-hall',
+      },
+    ],
+    modalCopy: {
+      subtitle: 'Chinese music at York Residents’ Festival',
+      description:
+        'I performed with the East Asian Youth Ensemble in a free Chinese music concert at Merchant Taylors’ Hall on 1 February. The 3:30pm concert was part of York Residents’ Festival weekend.',
+    },
   },
   {
     id: '8',
@@ -240,6 +335,12 @@ export const engagementArchive: ArchiveEngagement[] = [
     tags: ['workshop', 'community'],
     images: ['/images/timeline/bci-community-workshops-2026.jpg'],
     link: 'https://confucius.leeds.ac.uk/news/bci-supports-classical-music-and-dance-workshops-for-the-local-community/',
+    linkLabel: 'Read Business Confucius Institute report',
+    modalCopy: {
+      subtitle: 'Chinese classical music and dance with local seniors',
+      description:
+        'I performed guzheng in a four-week workshop series for the Lychee Red Chinese Seniors Project, organised with the Business Confucius Institute and Health for All. Around 120 people from local Chinese and overseas Chinese communities took part in sessions combining demonstrations with guided participation.',
+    },
   },
   {
     id: '9',
@@ -249,6 +350,12 @@ export const engagementArchive: ArchiveEngagement[] = [
     tags: ['performance'],
     images: ['/images/timeline/world-unite-acoustic-2025.jpg'],
     link: 'https://engage.luu.org.uk/events/HBF6W/world-unite-acoustic-session',
+    linkLabel: 'View LUU event listing',
+    modalCopy: {
+      subtitle: 'Chinese folk music with a contemporary arrangement',
+      description:
+        'At Leeds University Union, I performed Chinese folk music on guzheng, pipa and dizi with piano accompaniment. The WU Fest acoustic session paired traditional instruments with a contemporary arrangement.',
+    },
   },
   {
     id: '10',
@@ -258,6 +365,12 @@ export const engagementArchive: ArchiveEngagement[] = [
     tags: ['performance'],
     images: ['/images/timeline/wu-fest-teaser-2025.jpg'],
     link: 'https://engage.luu.org.uk/events/HPHYT/wu-fest-teaser-guzheng-performance',
+    linkLabel: 'View LUU event listing',
+    modalCopy: {
+      subtitle: 'A Welcome Week performance ahead of Wu Fest',
+      description:
+        'I gave a free guzheng performance at the Pyramid Canteen at Leeds University Union during Welcome Week. The session introduced students to the instrument and previewed the November Wu Fest.',
+    },
   },
   {
     id: '11',
@@ -267,6 +380,12 @@ export const engagementArchive: ArchiveEngagement[] = [
     tags: ['community', 'performance', 'workshop'],
     images: ['/images/timeline/lccs-summer-fair-2025.jpg'],
     link: 'https://confucius.leeds.ac.uk/news/lccs-summer-fair-brings-culture-community-and-celebration-to-leeds/',
+    linkLabel: 'Read Business Confucius Institute report',
+    modalCopy: {
+      subtitle: 'Music and community at the LCCS Summer Fair',
+      description:
+        'I opened the Leeds Chinese Community School Summer Fair at the Anglers Club with a guzheng performance. Students and teachers followed with music and dance, and families could try on Hanfu during the community celebration.',
+    },
   },
   {
     id: '12',
@@ -276,6 +395,12 @@ export const engagementArchive: ArchiveEngagement[] = [
     tags: ['performance'],
     images: ['/images/timeline/hear-china-yangtze-yellow-2025.jpg'],
     link: 'https://confucius.leeds.ac.uk/news/hear-china-the-sounds-of-the-yangtze-and-yellow-rivers/',
+    linkLabel: 'Read Business Confucius Institute report',
+    modalCopy: {
+      subtitle: 'Music shaped by the Yangtze and Yellow Rivers',
+      description:
+        'I performed Horse Race, Yi Ethnic Dance, Liuyang River, Jasmine Flower and Colourful Clouds Chasing the Moon during a public lecture on the regions and musical traditions of China’s two great rivers. The University of Leeds event paired research with live music from musicians based in Leeds, York, Manchester and Durham.',
+    },
   },
   {
     id: '13',
@@ -285,6 +410,12 @@ export const engagementArchive: ArchiveEngagement[] = [
     tags: ['performance'],
     images: ['/images/timeline/wu-fest-acoustic-2025.jpg'],
     link: 'https://engage.luu.org.uk/events/H3738/wu-fest-acoustic-session',
+    linkLabel: 'View LUU event listing',
+    modalCopy: {
+      subtitle: 'An acoustic performance for Wu Fest',
+      description:
+        'I performed at a Wu Fest acoustic session at Leeds University Union, bringing the guzheng to a live music programme celebrating Chinese culture.',
+    },
   },
   {
     id: '14',
@@ -294,6 +425,12 @@ export const engagementArchive: ArchiveEngagement[] = [
     tags: ['performance'],
     images: ['/images/timeline/leeds-business-chinese-new-year-2024.jpg'],
     link: 'https://confucius.leeds.ac.uk/news/leeds-university-celebrates-the-year-of-the-snake-in-style/',
+    linkLabel: 'Read Business Confucius Institute report',
+    modalCopy: {
+      subtitle: 'Welcoming the Year of the Snake at Leeds University Business School',
+      description:
+        'I performed Spring Festival Suite, Blooming Flowers and the Full Moon, and an arrangement of Auld Lang Syne across two sold-out sessions. The programme also introduced Chinese New Year customs and invited guests to try calligraphy and paper cutting.',
+    },
   },
   {
     id: '15',
@@ -303,6 +440,12 @@ export const engagementArchive: ArchiveEngagement[] = [
     tags: ['workshop', 'performance'],
     images: ['/images/timeline/harrogate-grammar-school-2025.jpg'],
     link: 'https://confucius.leeds.ac.uk/news/chinese-new-year-festivities-light-up-harrogate-grammar-school/',
+    linkLabel: 'Read Business Confucius Institute report',
+    modalCopy: {
+      subtitle: 'A guzheng performance for Harrogate Grammar School',
+      description:
+        'I played traditional Chinese pieces and invited Year 7 pupils to guess familiar Western tunes during a Chinese New Year event for around 300 students. The day also included kite making, painting, paper cutting, Hanfu and Mandarin activities, followed by an evening programme for parents and families.',
+    },
   },
   {
     id: '16',
@@ -312,6 +455,12 @@ export const engagementArchive: ArchiveEngagement[] = [
     tags: ['performance', 'community'],
     images: ['/images/timeline/lihua-school-awards-2024.jpg'],
     link: 'https://www.oushinet.com/static/content/qj/qjnews/2024-07-12/1261358645863555807.html',
+    linkLabel: 'Read Oushinet report',
+    modalCopy: {
+      subtitle: 'Student achievements and Chinese cultural performances',
+      description:
+        'I performed at the Lihua Education Chinese School ceremony at Temple Newsam. Students received awards for their Chinese studies, while pupils and teachers presented Chinese songs, instrumental music and dance for families.',
+    },
   },
   {
     id: '17',
@@ -321,6 +470,12 @@ export const engagementArchive: ArchiveEngagement[] = [
     tags: ['performance'],
     images: ['/images/timeline/manchester-dragon-boat-2024.jpg'],
     link: 'https://confucius.leeds.ac.uk/news/local-chinese-school-perform-at-manchester-dragon-boat-festival-celebrations/',
+    linkLabel: 'Read Business Confucius Institute report',
+    modalCopy: {
+      subtitle: 'Chinese music at the UK Dragon Boat Festival',
+      description:
+        'I performed guzheng at Salford Quays as part of New Vision Education Chinese School’s cultural programme. Students and teachers also presented Chinese dance, choir songs, an instrumental ensemble, folk music and live painting at the festival hosted by the Xinhua Chinese Association.',
+    },
   },
   {
     id: '18',
@@ -330,5 +485,11 @@ export const engagementArchive: ArchiveEngagement[] = [
     tags: ['performance'],
     images: ['/images/timeline/dragon-new-year-2024-leeds.jpg'],
     link: 'https://confucius.leeds.ac.uk/news/an-intercultural-celebration-to-welcome-the-year-of-the-dragon/',
+    linkLabel: 'Read Business Confucius Institute report',
+    modalCopy: {
+      subtitle: 'Welcoming the Year of the Dragon at Leeds',
+      description:
+        'I performed guzheng for the Business Confucius Institute’s Lunar New Year gathering at the University of Leeds. Guests heard about Chinese New Year traditions, shared Chinese snacks and tea, and took part in paper cutting and calligraphy.',
+    },
   },
 ]
