@@ -130,13 +130,23 @@ export const engagementArchive: ArchiveEngagement[] = [
   },
   {
     id: 'dragon-boat-festival-2026',
-    date: '2026-06-30',
+    date: '2026-06-13',
     venue: 'Salford, Greater Manchester',
     event: 'UK Chinese Dragon Boat Festival',
     tags: ['performance', 'community'],
     images: ['/images/timeline/dragon-boat-festival-2026.jpg'],
     link: 'https://confucius.leeds.ac.uk/news/bci-partner-school-performs-at-uk-chinese-dragon-boat-festival/',
     linkLabel: 'Read Business Confucius Institute report',
+    externalResources: [
+      {
+        label: 'View the official festival programme',
+        href: 'https://www.dragonboatfestival.uk/',
+      },
+      {
+        label: 'Read Chinese Consulate coverage',
+        href: 'https://manchester.china-consulate.gov.cn/eng/xwdt/202607/t20260716_11983417.htm',
+      },
+    ],
     modalCopy: {
       subtitle: 'Music and community at Salford’s UK Chinese Dragon Boat Festival',
       description:
@@ -208,7 +218,7 @@ export const engagementArchive: ArchiveEngagement[] = [
   },
   {
     id: '19',
-    date: '2026-05-15',
+    date: '2026-06-15',
     venue: 'University of Leeds',
     event: 'The Silk Road, Brought to Life',
     tags: ['workshop', 'performance'],
@@ -218,7 +228,7 @@ export const engagementArchive: ArchiveEngagement[] = [
     modalCopy: {
       subtitle: 'A musical journey along the Silk Road',
       description:
-        'I performed in a University of Leeds workshop that used live music to explore the Silk Road’s history and cultural exchange. The session connected Chinese musical traditions with the stories of the route.',
+        'I performed at Ode in Blue and Gold – Exploring the History of the Silk Road, a University of Leeds event organised by Music Management MA students. The programme explored the Silk Road’s history and cultural exchange through live music.',
     },
   },
   {
@@ -296,6 +306,12 @@ export const engagementArchive: ArchiveEngagement[] = [
     images: ['/images/timeline/leeds-chinese-new-year-2026.jpg'],
     link: 'https://confucius.leeds.ac.uk/news/leeds-biggest-chinese-new-year-celebration-once-again-a-big-success/',
     linkLabel: 'Read Business Confucius Institute report',
+    externalResources: [
+      {
+        label: 'View Merrion Centre event page',
+        href: 'https://www.merrioncentre.co.uk/promotions-events/year-of-the-horse',
+      },
+    ],
     modalCopy: {
       subtitle: 'Year of the Horse celebrations at Merrion Centre',
       description:
