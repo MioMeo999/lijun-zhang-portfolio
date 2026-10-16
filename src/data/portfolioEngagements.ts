@@ -22,6 +22,45 @@ export type ArchiveEngagement = Omit<Performance, 'description' | 'link'> & {
 
 export const engagementArchive: ArchiveEngagement[] = [
   {
+    id: 'discover-the-guzheng-leeds-2026',
+    date: '2026-10-15',
+    venue: 'Leeds City Library, Music Library (1st Floor)',
+    event: 'Discover the Guzheng: Sounds and Stories from China',
+    tags: ['performance', 'community'],
+    images: [
+      '/images/timeline/discover-guzheng-performance-2026.jpg',
+      '/images/timeline/discover-guzheng-performance-detail-2026.jpg',
+      '/images/timeline/discover-guzheng-poster-portrait-2026.png',
+      '/images/timeline/discover-guzheng-poster-landscape-2026.png',
+    ],
+    imageAlt: 'Lijun Zhang performing on the guzheng at Leeds City Library.',
+    link: 'https://www.ticketsource.com/leedslibraryevents/t-plopqrq',
+    linkLabel: 'View TicketSource event page',
+    externalResources: [
+      {
+        label: 'Read University of Leeds event preview',
+        href: 'https://confucius.leeds.ac.uk/events/discover-the-guzheng-sounds-and-stories-from-china/',
+      },
+      {
+        label: 'View additional performance photo',
+        href: '/images/timeline/discover-guzheng-performance-detail-2026.jpg',
+      },
+      {
+        label: 'View portrait event poster',
+        href: '/images/timeline/discover-guzheng-poster-portrait-2026.png',
+      },
+      {
+        label: 'View landscape event poster',
+        href: '/images/timeline/discover-guzheng-poster-landscape-2026.png',
+      },
+    ],
+    modalCopy: {
+      subtitle: 'A lunchtime introduction to China’s iconic traditional string instrument',
+      description:
+        'I introduced the guzheng’s distinctive sounds and playing techniques, sharing stories from its cultural heritage through live performance. The 1:05–2:00pm programme moved between traditional Chinese pieces, contemporary popular songs and familiar Western melodies; audiences could also see the instrument up close and ask questions. Doors opened at 12:45pm.',
+    },
+  },
+  {
     id: 'york-new-student-welcome-2026',
     date: '2026-09-25',
     venue: 'York',

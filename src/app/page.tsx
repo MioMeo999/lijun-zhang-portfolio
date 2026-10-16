@@ -145,6 +145,7 @@ const describeEngagement = (tags: string[]) => {
 }
 
 const portraitArchiveImages = new Set([
+  '/images/timeline/discover-guzheng-performance-2026.jpg',
   '/images/timeline/wu-fest-acoustic-2025.jpg',
   '/images/timeline/harrogate-grammar-school-2025.jpg',
   '/images/timeline/york-resident-festival-2026.jpg',
