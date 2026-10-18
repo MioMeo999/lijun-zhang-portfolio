@@ -43,9 +43,12 @@
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   border-bottom: 1px solid rgba(16, 20, 22, .26);
-  background: rgba(242, 243, 240, .94);
+  /*
+   * Opaque enough that the blur it used to carry was invisible, and a backdrop
+   * blur on a sticky bar is re-rendered on every scroll frame.
+   */
+  background: rgba(242, 243, 240, .97);
   padding: 0 4vw;
-  backdrop-filter: blur(14px);
 }
 
 .identity {
@@ -2347,8 +2350,8 @@
   border: 0;
   background: rgba(20, 17, 14, .78);
   cursor: pointer;
-  transition: opacity 220ms var(--ease-out);
-  will-change: opacity;
+  opacity: 1;
+  transition: opacity var(--dialog-enter) var(--dialog-ease-enter);
 }
 
 .memoirModalPanel {
@@ -2360,26 +2363,31 @@
   grid-template-columns: minmax(0, 1.15fr) minmax(330px, .85fr);
   overflow: hidden;
   opacity: 1;
-  transform: translateY(0);
+  transform: none;
   background: var(--paper);
   box-shadow: 0 40px 110px rgba(0, 0, 0, .4);
   transition:
-    opacity 260ms var(--ease-out),
-    transform 260ms var(--ease-out);
-  will-change: opacity, transform;
+    opacity var(--dialog-enter) var(--dialog-ease-enter),
+    transform var(--dialog-enter) var(--dialog-ease-enter);
 }
 
-.memoirModalPanelClosing {
-  opacity: 0;
-  transform: translateY(8px);
-  transition-duration: 180ms;
-  transition-timing-function: cubic-bezier(.4, 0, 1, 1);
-}
-
+/*
+ * Enter and exit are transitions on the same properties, so closing mid-open
+ * (or reopening mid-close) reverses from wherever the panel is. The scrim is
+ * flat on purpose: a blur on a full-viewport layer whose opacity is animating
+ * is re-rendered every frame.
+ */
 .memoirModalClosing .memoirModalBackdrop {
   opacity: 0;
-  transition-duration: 180ms;
-  transition-timing-function: cubic-bezier(.4, 0, 1, 1);
+  transition-duration: var(--dialog-exit);
+  transition-timing-function: var(--dialog-ease-exit);
+}
+
+.memoirModalClosing .memoirModalPanel {
+  opacity: 0;
+  transform: translateY(var(--dialog-drift));
+  transition-duration: var(--dialog-exit);
+  transition-timing-function: var(--dialog-ease-exit);
 }
 
 @starting-style {
@@ -2389,7 +2397,7 @@
 
   .memoirModalPanel {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(var(--dialog-drift));
   }
 }
 
@@ -2429,6 +2437,34 @@
   object-fit: contain;
 }
 
+/*
+ * The dialog's photo is a larger file than the card's thumbnail. The thumbnail
+ * stands in beneath it (same box, same fit, so the two line up exactly) and the
+ * sharp photo fades up over it once decoded, so the panel is never an empty
+ * dark slab while the file arrives.
+ */
+.memoirModalImageThumb,
+.memoirModalImageBackdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.memoirModalImageThumb {
+  z-index: 2;
+}
+
+.memoirModalPhoto {
+  z-index: 2;
+  opacity: 0;
+  transition: opacity var(--dialog-enter) var(--dialog-ease-enter);
+}
+
+.memoirModalPhoto[data-ready] {
+  opacity: 1;
+}
+
 .memoirModalImageWide {
   isolation: isolate;
 }
@@ -2448,10 +2484,6 @@
   filter: blur(24px) saturate(.78);
   opacity: .52;
   transform: scale(1.08);
-}
-
-.memoirModalImageWide .memoirModalImageForeground {
-  z-index: 2;
 }
 
 .memoirModalCopy {
@@ -2540,7 +2572,8 @@
   .archiveMemoirCaption,
   .archiveReportCue,
   .memoirModalBackdrop,
-  .memoirModalPanel {
+  .memoirModalPanel,
+  .memoirModalPhoto {
     animation: none;
     transition: none;
   }
@@ -2925,18 +2958,6 @@
 
 .videoMore > .videoGrid {
   margin-top: 28px;
-  animation: revealCollection .45s ease both;
-}
-
-@keyframes revealCollection {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .videosHead > div:nth-child(2) > span {
@@ -3289,15 +3310,12 @@
   position: fixed;
   z-index: 1200;
   inset: 0;
-  display: none;
+  display: grid;
   place-items: center;
   padding: clamp(18px, 4vw, 60px);
 }
 
-.pressVideoModalOpen {
-  display: grid;
-}
-
+/* The same gesture as the archive dialog; see the dialog tokens on .site. */
 .pressVideoBackdrop {
   position: absolute;
   inset: 0;
@@ -3306,8 +3324,8 @@
   background: rgba(20, 17, 14, .82);
   padding: 0;
   cursor: pointer;
-  backdrop-filter: blur(14px);
-  animation: pressBackdropIn .35s ease both;
+  opacity: 1;
+  transition: opacity var(--dialog-enter) var(--dialog-ease-enter);
 }
 
 .pressVideoPanel {
@@ -3317,7 +3335,35 @@
   border: 1px solid rgba(244, 239, 230, .28);
   background: #17130f;
   box-shadow: 0 34px 90px rgba(0, 0, 0, .44);
-  animation: pressVideoIn .5s var(--ease-out) both;
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity var(--dialog-enter) var(--dialog-ease-enter),
+    transform var(--dialog-enter) var(--dialog-ease-enter);
+}
+
+.pressVideoModalClosing .pressVideoBackdrop {
+  opacity: 0;
+  transition-duration: var(--dialog-exit);
+  transition-timing-function: var(--dialog-ease-exit);
+}
+
+.pressVideoModalClosing .pressVideoPanel {
+  opacity: 0;
+  transform: translateY(var(--dialog-drift));
+  transition-duration: var(--dialog-exit);
+  transition-timing-function: var(--dialog-ease-exit);
+}
+
+@starting-style {
+  .pressVideoBackdrop {
+    opacity: 0;
+  }
+
+  .pressVideoPanel {
+    opacity: 0;
+    transform: translateY(var(--dialog-drift));
+  }
 }
 
 .pressVideoHead {
@@ -3362,22 +3408,6 @@
   width: 100%;
   max-height: calc(100vh - 150px);
   background: black;
-}
-
-@keyframes pressBackdropIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes pressVideoIn {
-  from {
-    opacity: 0;
-    transform: translateY(22px) scale(.975);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
 }
 
 .pressFeatureCopy p {
@@ -3709,8 +3739,7 @@
 @media (prefers-reduced-motion: reduce) {
   .heroWords,
   .heroPortraitFrame,
-  .pressFeatureActive,
-  .videoMore > .videoGrid {
+  .pressFeatureActive {
     animation: none;
   }
 
@@ -3722,6 +3751,7 @@
   .pressVideoPanel,
   .pressFeatureActive {
     animation: none;
+    transition: none;
   }
 
   .researchPoster {
@@ -5622,6 +5652,20 @@
   --rise-media: 20px;
   --enter-blur: 5px;
 
+  /*
+   * Dialogs share one gesture. The panel and the scrim use a single duration and
+   * curve, so they arrive, and leave, together; the only thing that moves is a
+   * faint drift of the panel (no scale: it resamples fine detail mid-flight).
+   * --dialog-exit is also read by useDialogMotion to time the unmount.
+   * Out for the enter answers the click at once, then decelerates; in-out for the
+   * exit leaves as deliberately as it arrived instead of speeding up as it vanishes.
+   */
+  --dialog-enter: 340ms;
+  --dialog-exit: 300ms;
+  --dialog-ease-enter: cubic-bezier(.2, .55, .3, 1);
+  --dialog-ease-exit: cubic-bezier(.4, 0, .3, 1);
+  --dialog-drift: 6px;
+
   /* Kept so any rule still naming the old tokens stays on the same curve. */
   --motion-out: var(--ease-out);
   --motion-soft: var(--ease-out);
@@ -5652,6 +5696,12 @@
   transform: translate3d(0, 0, 0) scale(1.045);
   transform-origin: center;
   will-change: transform;
+  /*
+   * The scroll loop writes this transform every frame, with its own smoothing.
+   * A CSS transition on top would chase each write: restarted every frame, and
+   * a second, slower smoothing stacked on the first.
+   */
+  transition: none;
 }
 
 .desktopNav a {
@@ -5659,6 +5709,31 @@
   align-items: center;
   color: inherit;
   transition: color var(--hover) ease;
+}
+
+/* The menu comes and goes on the dialogs' gesture, a little quicker. */
+.mobileNav {
+  --menu-enter: 260ms;
+  --menu-exit: 200ms;
+  opacity: 1;
+  translate: 0 0;
+  transition:
+    opacity var(--menu-enter) var(--dialog-ease-enter),
+    translate var(--menu-enter) var(--dialog-ease-enter);
+}
+
+.mobileNavClosing {
+  opacity: 0;
+  translate: 0 -6px;
+  transition-duration: var(--menu-exit);
+  transition-timing-function: var(--dialog-ease-exit);
+}
+
+@starting-style {
+  .mobileNav {
+    opacity: 0;
+    translate: 0 -6px;
+  }
 }
 
 .desktopNav .navActive,
@@ -5806,20 +5881,35 @@
 }
 
 /*
- * Every element in a chapter arrives the same way: it rises on Y, resolves a
- * blur and fades up. Heading lines are not a special case any more — they are
- * simply the first entries in the chapter's cascade, which is what makes the
- * body copy read as a continuation of the title instead of a separate event.
+ * Every element arrives the same way: it rises on Y, resolves a blur and fades
+ * up. Heading lines are not a special case — they are simply the first entries
+ * in a cascade, which is what makes the body copy read as a continuation of the
+ * title instead of a separate event.
+ *
+ * useSiteMotion reveals each target when it reaches the reading line, not when
+ * its whole chapter does: data-in marks it arrived and data-done is set once
+ * the transition has played out. Items that arrive together share a cascade
+ * through --enter-delay.
  *
  * The three properties share one duration on purpose. When transform outlasts
  * opacity the element finishes fading before it stops moving, and the drift
  * afterwards is what made the old version feel loose.
+ *
+ * The transition lives only on the arriving state. Declared on the hidden or
+ * resting state it would replace the element's own transitions for good — a
+ * revealed link lost its hover colour, or had it held back by its cascade slot.
+ * The resting state declares nothing for the same reason: filter: blur(0) or
+ * translate: 0 0 look identical to none but still make the element a stacking
+ * context and the containing block for anything fixed inside it.
  */
-.motionReady [data-chapter] [data-reveal],
-.motionReady [data-chapter] [data-reveal-line] {
+.motionReady [data-reveal]:not([data-reveal='heading'], [data-in]),
+.motionReady [data-reveal-line]:not([data-in]) {
   filter: blur(var(--enter-blur));
   opacity: 0;
   translate: 0 var(--rise);
+}
+
+.motionReady [data-in]:not([data-done]) {
   transition:
     filter var(--enter) var(--ease-out),
     opacity var(--enter) linear,
@@ -5828,74 +5918,30 @@
 }
 
 /*
- * `motionReady` is applied after first paint, so without this the hidden state
+ * motionReady is applied after first paint, so without this the hidden state
  * would itself be transitioned into — content appeared, faded out, then faded
  * back in. The boot class is removed on the next frame, once the hidden state
  * has been committed silently.
  */
-.motionBoot [data-chapter] [data-reveal],
-.motionBoot [data-chapter] [data-reveal-line],
-.motionBoot .archiveMemoirCard {
+.motionBoot [data-reveal],
+.motionBoot [data-reveal-line],
+.motionReady [data-instant] {
   transition: none !important;
   animation: none !important;
 }
 
-/*
- * The heading element is only a wrapper; its lines carry the motion. Leaving
- * it animated too would double the blur and travel on the largest type.
- */
-.motionReady [data-chapter] [data-reveal='heading'] {
-  filter: none;
-  opacity: 1;
-  translate: none;
-  transition: none;
-}
-
-.motionReady [data-chapter] [data-reveal-line] {
+/* The heading element is only a wrapper; its lines carry the motion. */
+.motionReady [data-reveal-line] {
   display: block;
 }
 
 /* Media is heavier, so it gets the longer step and travels a fixed distance. */
-.motionReady [data-chapter] [data-reveal='visual'] {
+.motionReady [data-reveal='visual'] {
   --rise: var(--rise-media);
+}
+
+.motionReady [data-reveal='visual'][data-in]:not([data-done]) {
   transition-duration: var(--enter-lg);
-}
-
-.motionReady .chapterVisible [data-reveal],
-.motionReady .chapterVisible [data-reveal-line] {
-  filter: blur(0);
-  opacity: 1;
-  translate: 0 0;
-}
-
-/*
- * Archive cards sit on the same scale. They previously alternated left/right,
- * which read as noise next to everything else moving straight up. Travel stays
- * on `translate` so it composes with each card's scrapbook tilt rather than
- * overwriting it.
- */
-.motionReady [data-chapter]:not(.chapterVisible) .archiveMemoirCard {
-  filter: blur(var(--enter-blur));
-  opacity: 0;
-  translate: 0 var(--rise-media);
-}
-
-.motionReady .chapterVisible .archiveMemoirCard {
-  animation: archiveMemoryIn var(--enter-lg) var(--ease-out) both;
-  animation-delay: calc(var(--step) * 2 + var(--archive-index) * var(--step));
-}
-
-@keyframes archiveMemoryIn {
-  from {
-    filter: blur(var(--enter-blur));
-    opacity: 0;
-    translate: 0 var(--rise-media);
-  }
-  to {
-    filter: blur(0);
-    opacity: 1;
-    translate: 0 0;
-  }
 }
 
 .archiveMemoirPhoto img {
@@ -6133,7 +6179,6 @@
   .heroSideNote,
   .scrollCue,
   .affiliations,
-  .motionReady .chapterVisible .archiveMemoirCard,
   .pressFeatureActive,
   .pressFeatureActive .pressFeatureCopy,
   .videoGrid a:hover .videoPlay {
@@ -6145,24 +6190,23 @@
    * are the parts that cause trouble — but the fade stays, so the page still
    * reads as arriving in sequence rather than snapping into place.
    */
-  .motionReady [data-chapter] [data-reveal],
-  .motionReady [data-chapter] [data-reveal-line],
-  .motionReady [data-chapter]:not(.chapterVisible) .archiveMemoirCard {
-    clip-path: none;
+  .motionReady [data-reveal]:not([data-reveal='heading'], [data-in]),
+  .motionReady [data-reveal-line]:not([data-in]) {
     filter: none;
     translate: none;
+  }
+
+  .motionReady [data-in]:not([data-done]) {
     transition: opacity var(--enter) linear;
     transition-delay: var(--enter-delay, 0ms);
   }
 
-  .motionReady .chapterVisible [data-reveal],
-  .motionReady .chapterVisible [data-reveal-line],
-  .motionReady .chapterVisible .archiveMemoirCard {
-    opacity: 1;
-  }
-
   .scrollProgress {
     display: none;
+  }
+
+  .mobileNav {
+    transition: none;
   }
 
   .site [data-scroll-media] img {

@@ -30,8 +30,17 @@ import {
 } from '@/data/portfolioMedia'
 import { engagementArchive } from '@/data/portfolioEngagements'
 import styles from './page.module.css'
-import mobileModalStyles from './archiveModalMobile.module.css'
+import { ArchiveMemoirModal, type ArchiveMemoirModalHandle } from './ArchiveMemoirModal'
+import { PressVideoModal, type PressVideoModalHandle } from './PressVideoModal'
 import { ContactQrCodes } from './ContactQrCodes'
+import {
+  formatEngagementDate,
+  preloadMemoirImage,
+  wideArchiveImages,
+} from './archiveShared'
+import { readDurationMs } from './motionUtils'
+import { lockPageScroll } from './pageScrollLock'
+import { useSiteMotion } from './useSiteMotion'
 
 const Instagram = createLucideIcon('Instagram', [
   ['rect', { width: '20', height: '20', x: '2', y: '2', rx: '5', ry: '5', key: 'instagram-frame' }],
@@ -59,16 +68,6 @@ const socialProfiles = [
 
 const researchReportUrl =
   'https://www.healthybuildingsnetwork.org/blog/sonic-belonging.html'
-
-const formatEngagementDate = (date: string) => {
-  const [year, month, day] = date.split('-')
-  return `${day}.${month}.${year.slice(2)}`
-}
-
-// Kept in step with `--step` in page.module.css. One unit for every stagger on
-// the page; the cap stops tall sections trailing on after the eye has moved.
-const CASCADE_STEP_MS = 70
-const MAX_CASCADE_STEPS = 7
 
 const navItems = [
   { href: '#story', label: 'About' },
@@ -116,34 +115,6 @@ const pressLogoStyle = (width: number): CSSProperties & { '--press-logo-width': 
   '--press-logo-width': `${width}px`,
 })
 
-const describeEngagement = (tags: string[]) => {
-  const hasWorkshop = tags.includes('workshop')
-  const hasPerformance = tags.includes('performance')
-  const hasCommunity = tags.includes('community')
-
-  if (hasWorkshop && hasPerformance && hasCommunity) {
-    return 'Performance, participation and community exchange brought together in one shared cultural programme.'
-  }
-
-  if (hasWorkshop && hasPerformance) {
-    return 'A participatory encounter moving between live performance, demonstration and shared learning.'
-  }
-
-  if (hasPerformance && hasCommunity) {
-    return 'A live musical gathering shaped around celebration, cultural connection and a shared audience.'
-  }
-
-  if (hasWorkshop && hasCommunity) {
-    return 'An open learning space connecting traditional music with conversation, participation and community.'
-  }
-
-  if (hasWorkshop) {
-    return 'A hands-on session exploring sound, tradition and the social possibilities of making music together.'
-  }
-
-  return 'A live guzheng performance presented as part of an evolving, research-led artistic practice.'
-}
-
 const portraitArchiveImages = new Set([
   '/images/timeline/discover-guzheng-performance-2026.jpg',
   '/images/timeline/wu-fest-acoustic-2025.jpg',
@@ -152,18 +123,6 @@ const portraitArchiveImages = new Set([
   '/images/timeline/world-unite-acoustic-2025.jpg',
   '/images/timeline/sonic-belonging-2026.jpg',
   '/images/timeline/silk-road-workshop-2026.jpg',
-])
-
-const wideArchiveImages = new Set([
-  '/images/timeline/manchester-mid-autumn-2026.jpg',
-  '/images/timeline/vision-china-london-2026.jpg',
-  '/images/timeline/lihua-school-awards-2024.jpg',
-  '/images/timeline/wu-fest-teaser-2025.jpg',
-  '/images/timeline/york-spring-gala-2026.jpg',
-  '/images/timeline/lccs-summer-fair-2025.jpg',
-  '/images/timeline/leeds-chinese-new-year-2026.jpg',
-  '/images/timeline/lubs-global-impact-day-2026.jpeg',
-  '/images/timeline/dragon-new-year-2024-leeds.jpg',
 ])
 
 const tallArchiveImages = new Set([
@@ -238,57 +197,45 @@ function ModernImage({
 export default function InkResonancePage() {
   const siteRef = useRef<HTMLDivElement>(null)
   const scrollProgressRef = useRef<HTMLSpanElement>(null)
-  const memoirCloseRef = useRef<HTMLButtonElement>(null)
-  const memoirTriggerRef = useRef<HTMLElement | null>(null)
-  const pressVideoCloseRef = useRef<HTMLButtonElement>(null)
-  const pressVideoTriggerRef = useRef<HTMLElement | null>(null)
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [selectedEngagement, setSelectedEngagement] = useState<(typeof engagementArchive)[number] | null>(null)
-  const [isMemoirClosing, setIsMemoirClosing] = useState(false)
+  const mobileNavRef = useRef<HTMLElement>(null)
+  const menuTimerRef = useRef<number | undefined>(undefined)
+  const memoirModalRef = useRef<ArchiveMemoirModalHandle>(null)
+  const pressVideoModalRef = useRef<PressVideoModalHandle>(null)
+  // The menu stays mounted while it leaves so its exit can play.
+  const [menuState, setMenuState] = useState<'closed' | 'open' | 'closing'>('closed')
   const [activeSection, setActiveSection] = useState('story')
   const [activePressId, setActivePressId] = useState(pressItems[0].id)
-  const [activePressVideoId, setActivePressVideoId] = useState<string | null>(null)
 
+  const menuOpen = menuState === 'open'
   const featuredVideos = performanceVideos.filter((video) => video.featured)
   const additionalVideos = performanceVideos.filter((video) => !video.featured)
-  const activePressVideo = pressItems.find((item) => item.id === activePressVideoId && item.videoUrl)
   const sortedEngagements = [...engagementArchive].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   )
   const archivePreviewItems = sortedEngagements.slice(0, 9)
   const archiveRemainingItems = sortedEngagements.slice(9)
-  const selectedEngagementImageIsWide = selectedEngagement
-    ? wideArchiveImages.has(selectedEngagement.images[0])
-    : false
-  const selectedEngagementResources = selectedEngagement
-    ? [
-        {
-          label: selectedEngagement.linkLabel ?? 'Read the full event',
-          href: selectedEngagement.link,
-        },
-        ...(selectedEngagement.externalResources ?? []),
-        ...(selectedEngagement.videoLink
-          ? [{ label: 'Watch performance video', href: selectedEngagement.videoLink }]
-          : []),
-      ]
-    : []
-  const selectedEngagementHasScrollableCopy =
-    selectedEngagementResources.length > 3 || selectedEngagement?.scrollableCopy === true
 
-  const openMemoir = useCallback((item: (typeof engagementArchive)[number], trigger: HTMLElement | null) => {
-    memoirTriggerRef.current = trigger
-    setIsMemoirClosing(false)
-    setSelectedEngagement(item)
+  const openMemoir = useCallback(
+    (item: (typeof engagementArchive)[number], card: HTMLElement | null, trigger?: HTMLElement | null) => {
+      // The card's thumbnail is already on screen; the dialog shows it until its own photo arrives.
+      const thumbSrc = card?.querySelector('img')?.currentSrc ?? ''
+      const focusTarget = trigger ?? card?.querySelector<HTMLElement>('button') ?? null
+      memoirModalRef.current?.open(item, focusTarget, thumbSrc)
+    },
+    [],
+  )
+
+  const closeMenu = useCallback(() => {
+    setMenuState((state) => (state === 'open' ? 'closing' : state))
   }, [])
 
-  const closeMemoir = useCallback(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setSelectedEngagement(null)
-      return
+  const toggleMenu = () => {
+    if (menuState === 'open') closeMenu()
+    else {
+      window.clearTimeout(menuTimerRef.current)
+      setMenuState('open')
     }
-
-    setIsMemoirClosing(true)
-  }, [])
+  }
 
   const renderArchiveMemoirCard = (
     item: (typeof engagementArchive)[number],
@@ -297,9 +244,7 @@ export default function InkResonancePage() {
     const isPortrait = portraitArchiveImages.has(item.images[0])
     const isWide = wideArchiveImages.has(item.images[0])
     const isTall = tallArchiveImages.has(item.images[0])
-    const cardStyle = {
-      '--archive-index': Math.min(index, 8),
-    } as CSSProperties
+    const warmModalPhoto = () => preloadMemoirImage(item.images[0])
 
     return (
       <article
@@ -313,10 +258,13 @@ export default function InkResonancePage() {
           archiveMobileWideIds.has(item.id) ? styles.archiveMemoirCardMobileWide : '',
         ].filter(Boolean).join(' ')}
         key={item.id}
-        style={cardStyle}
+        data-reveal="visual"
+        onPointerEnter={warmModalPhoto}
+        onPointerDown={warmModalPhoto}
+        onFocus={warmModalPhoto}
         onClick={(event) => {
           if (event.target instanceof Element && event.target.closest('button')) return
-          openMemoir(item, null)
+          openMemoir(item, event.currentTarget)
         }}
       >
         <span className={styles.archiveMemoirPin} aria-hidden="true" />
@@ -325,7 +273,7 @@ export default function InkResonancePage() {
           className={styles.archiveMemoirPhoto}
           aria-label={`Open details for ${item.event}`}
           onClick={(event) => {
-            openMemoir(item, event.currentTarget)
+            openMemoir(item, event.currentTarget.closest('article'), event.currentTarget)
           }}
         >
           <Image
@@ -344,7 +292,7 @@ export default function InkResonancePage() {
           type="button"
           className={styles.archiveMemoirCaption}
           onClick={(event) => {
-            openMemoir(item, event.currentTarget)
+            openMemoir(item, event.currentTarget.closest('article'), event.currentTarget)
           }}
           aria-label={`Open details for ${item.event}`}
         >
@@ -362,148 +310,43 @@ export default function InkResonancePage() {
     )
   }
 
+  useSiteMotion(siteRef, scrollProgressRef)
+
+  // Lock the page for as long as the menu is on screen (including its exit), and
+  // let Escape dismiss it.
   useEffect(() => {
-    if (!menuOpen) return
+    if (menuState === 'closed') return
 
-    const previousOverflow = document.body.style.overflow
+    const unlock = lockPageScroll()
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setMenuOpen(false)
+      if (event.key === 'Escape') closeMenu()
     }
-
-    document.body.style.overflow = 'hidden'
     window.addEventListener('keydown', closeOnEscape)
 
     return () => {
-      document.body.style.overflow = previousOverflow
+      unlock()
       window.removeEventListener('keydown', closeOnEscape)
     }
-  }, [menuOpen])
+  }, [closeMenu, menuState])
 
+  // The menu is removed once its exit has played (or at once for reduced motion).
   useEffect(() => {
-    if (!selectedEngagement) return
+    if (menuState !== 'closing') return
 
-    const trigger = memoirTriggerRef.current
-    const previousOverflow = document.body.style.overflow
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        closeMemoir()
-      }
-    }
-
-    document.body.style.overflow = 'hidden'
-    memoirCloseRef.current?.focus()
-    window.addEventListener('keydown', closeOnEscape)
-
-    return () => {
-      document.body.style.overflow = previousOverflow
-      window.removeEventListener('keydown', closeOnEscape)
-      if (trigger?.isConnected) {
-        window.requestAnimationFrame(() => trigger.focus({ preventScroll: true }))
-      }
-    }
-  }, [closeMemoir, selectedEngagement])
-
-  useEffect(() => {
-    if (!activePressVideoId) return
-
-    const trigger = pressVideoTriggerRef.current
-    const previousOverflow = document.body.style.overflow
-    const closePressVideoOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setActivePressVideoId(null)
-    }
-
-    document.body.style.overflow = 'hidden'
-    pressVideoCloseRef.current?.focus()
-    window.addEventListener('keydown', closePressVideoOnEscape)
-
-    return () => {
-      document.body.style.overflow = previousOverflow
-      window.removeEventListener('keydown', closePressVideoOnEscape)
-      if (trigger?.isConnected) {
-        window.requestAnimationFrame(() => trigger.focus())
-      }
-    }
-  }, [activePressVideoId])
-
-  useEffect(() => {
-    const root = siteRef.current
-    if (!root) return
-
-    const chapters = Array.from(root.querySelectorAll<HTMLElement>('[data-chapter]'))
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
-    // One cascade per chapter, in document order, so a heading's lines and the
-    // copy beneath them sit on the same rhythm instead of running two
-    // overlapping ones. The heading element itself is only a wrapper — its
-    // lines take its place in the sequence.
-    chapters.forEach((chapter) => {
-      let step = 0
-
-      chapter
-        .querySelectorAll<HTMLElement>('[data-reveal], [data-reveal-line]')
-        .forEach((element) => {
-          if (element.matches("[data-reveal='heading']")) return
-          element.style.setProperty(
-            '--enter-delay',
-            `${Math.min(step, MAX_CASCADE_STEPS) * CASCADE_STEP_MS}ms`,
-          )
-          step += 1
-        })
-    })
-
-    // Commit the hidden state with transitions switched off, then release them
-    // on the next frame so nothing animates on the way *into* hiding.
-    root.classList.add(styles.motionBoot, styles.motionReady)
-    void root.offsetWidth
-    let revealFrame = 0
-    const bootFrame = window.requestAnimationFrame(() => {
-      root.classList.remove(styles.motionBoot)
-    })
-
-    const revealHashChapter = () => {
-      const hash = window.location.hash.slice(1)
-      chapters.find((chapter) => chapter.id === hash)?.classList.add(styles.chapterVisible)
-    }
-
-    revealHashChapter()
-    window.addEventListener('hashchange', revealHashChapter)
-
-    if (prefersReducedMotion || !('IntersectionObserver' in window)) {
-      // Wait for the frame after the boot class is dropped, otherwise the
-      // reveal coalesces with it and the gentle fade is skipped entirely.
-      revealFrame = window.requestAnimationFrame(() => {
-        revealFrame = window.requestAnimationFrame(() => {
-          chapters.forEach((chapter) => chapter.classList.add(styles.chapterVisible))
-        })
-      })
-
-      return () => {
-        window.cancelAnimationFrame(bootFrame)
-        window.cancelAnimationFrame(revealFrame)
-        window.removeEventListener('hashchange', revealHashChapter)
-      }
-    }
-
-    const revealObserver = new IntersectionObserver(
-      (entries, observer) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return
-          entry.target.classList.add(styles.chapterVisible)
-          observer.unobserve(entry.target)
-        })
-      },
-      { threshold: 0.14, rootMargin: '0px 0px -10% 0px' },
+    const exitMs = mobileNavRef.current
+      ? readDurationMs(
+          window.getComputedStyle(mobileNavRef.current).getPropertyValue('--menu-exit'),
+          220,
+        )
+      : 220
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    menuTimerRef.current = window.setTimeout(
+      () => setMenuState('closed'),
+      reducedMotion ? 0 : exitMs + 30,
     )
 
-    chapters.forEach((chapter) => revealObserver.observe(chapter))
-
-    return () => {
-      window.cancelAnimationFrame(bootFrame)
-      window.cancelAnimationFrame(revealFrame)
-      revealObserver.disconnect()
-      window.removeEventListener('hashchange', revealHashChapter)
-    }
-  }, [])
+    return () => window.clearTimeout(menuTimerRef.current)
+  }, [menuState])
 
   useEffect(() => {
     const root = siteRef.current
@@ -527,172 +370,6 @@ export default function InkResonancePage() {
     navigableSections.forEach((section) => navigationObserver.observe(section))
 
     return () => navigationObserver.disconnect()
-  }, [])
-
-  useEffect(() => {
-    const root = siteRef.current
-    if (!root) return
-
-    let scrollAnimationFrame: number | null = null
-    let previousInlineScrollBehavior = ''
-
-    const stopScrollAnimation = () => {
-      if (scrollAnimationFrame === null) return
-      window.cancelAnimationFrame(scrollAnimationFrame)
-      scrollAnimationFrame = null
-      document.documentElement.style.scrollBehavior = previousInlineScrollBehavior
-    }
-
-    const handleInternalNavigation = (event: MouseEvent) => {
-      if (
-        event.defaultPrevented ||
-        event.button !== 0 ||
-        event.metaKey ||
-        event.ctrlKey ||
-        event.shiftKey ||
-        event.altKey ||
-        !(event.target instanceof Element)
-      ) return
-
-      const anchor = event.target.closest<HTMLAnchorElement>('a[href^="#"]')
-      if (!anchor || !root.contains(anchor)) return
-
-      const targetId = anchor.hash.slice(1)
-      if (!targetId || targetId.startsWith('qr-')) return
-
-      const target = document.getElementById(targetId)
-      if (!target || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-
-      event.preventDefault()
-      stopScrollAnimation()
-
-      const startY = window.scrollY
-      const headerHeight = root.querySelector('header')?.getBoundingClientRect().height ?? 0
-      const targetY = Math.max(0, target.getBoundingClientRect().top + startY - headerHeight - 14)
-      const distance = targetY - startY
-      const duration = Math.min(960, Math.max(620, 560 + Math.abs(distance) * .08))
-      const startTime = window.performance.now()
-
-      if (window.location.hash !== anchor.hash) {
-        window.history.pushState(null, '', anchor.hash)
-      }
-
-      previousInlineScrollBehavior = document.documentElement.style.scrollBehavior
-      document.documentElement.style.scrollBehavior = 'auto'
-
-      const animateScroll = (timestamp: number) => {
-        const progress = Math.min(1, (timestamp - startTime) / duration)
-        const easedProgress = progress < .5
-          ? 4 * progress * progress * progress
-          : 1 - Math.pow(-2 * progress + 2, 3) / 2
-
-        window.scrollTo(0, startY + distance * easedProgress)
-
-        if (progress < 1) {
-          scrollAnimationFrame = window.requestAnimationFrame(animateScroll)
-          return
-        }
-
-        scrollAnimationFrame = null
-        document.documentElement.style.scrollBehavior = previousInlineScrollBehavior
-      }
-
-      scrollAnimationFrame = window.requestAnimationFrame(animateScroll)
-    }
-
-    const handleScrollInterruption = () => stopScrollAnimation()
-    const handleKeyInterruption = (event: KeyboardEvent) => {
-      if (['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End', ' '].includes(event.key)) {
-        stopScrollAnimation()
-      }
-    }
-
-    root.addEventListener('click', handleInternalNavigation)
-    window.addEventListener('wheel', handleScrollInterruption, { passive: true })
-    window.addEventListener('touchstart', handleScrollInterruption, { passive: true })
-    window.addEventListener('keydown', handleKeyInterruption)
-
-    return () => {
-      stopScrollAnimation()
-      root.removeEventListener('click', handleInternalNavigation)
-      window.removeEventListener('wheel', handleScrollInterruption)
-      window.removeEventListener('touchstart', handleScrollInterruption)
-      window.removeEventListener('keydown', handleKeyInterruption)
-    }
-  }, [])
-
-  useEffect(() => {
-    const root = siteRef.current
-    const progressBar = scrollProgressRef.current
-    if (!root || !progressBar) return
-
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    const driftItems = Array.from(root.querySelectorAll<HTMLElement>('[data-scroll-media]'))
-      .map((wrapper) => {
-        const image = wrapper.querySelector<HTMLElement>('img')
-        if (!image) return null
-
-        return {
-          current: 0,
-          image,
-          strength: Number.parseFloat(wrapper.dataset.scrollStrength ?? '16'),
-          target: 0,
-          wrapper,
-        }
-      })
-      .filter((item): item is NonNullable<typeof item> => Boolean(item))
-
-    let animationFrame: number | null = null
-    let progressCurrent = 0
-    let progressTarget = 0
-
-    const renderScrollMotion = () => {
-      animationFrame = null
-      let shouldContinue = false
-
-      progressCurrent += (progressTarget - progressCurrent) * .14
-      if (Math.abs(progressTarget - progressCurrent) > .001) shouldContinue = true
-      progressBar.style.transform = `scaleY(${progressCurrent.toFixed(4)})`
-
-      if (!prefersReducedMotion) {
-        driftItems.forEach((item) => {
-          item.current += (item.target - item.current) * .09
-          if (Math.abs(item.target - item.current) > .08) shouldContinue = true
-          item.image.style.transform = `translate3d(0, ${item.current.toFixed(2)}px, 0) scale(1.045)`
-        })
-      }
-
-      if (shouldContinue) animationFrame = window.requestAnimationFrame(renderScrollMotion)
-    }
-
-    const scheduleScrollMotion = () => {
-      const scrollRange = document.documentElement.scrollHeight - window.innerHeight
-      progressTarget = scrollRange > 0 ? Math.min(1, Math.max(0, window.scrollY / scrollRange)) : 0
-
-      if (!prefersReducedMotion) {
-        driftItems.forEach((item) => {
-          const rect = item.wrapper.getBoundingClientRect()
-          const viewportDistance = window.innerHeight + rect.height
-          const relativePosition = (rect.top + rect.height / 2 - window.innerHeight / 2) / viewportDistance
-          item.target = Math.max(-1, Math.min(1, relativePosition)) * item.strength
-        })
-      }
-
-      if (animationFrame === null) animationFrame = window.requestAnimationFrame(renderScrollMotion)
-    }
-
-    window.addEventListener('scroll', scheduleScrollMotion, { passive: true })
-    window.addEventListener('resize', scheduleScrollMotion)
-    scheduleScrollMotion()
-
-    return () => {
-      if (animationFrame !== null) window.cancelAnimationFrame(animationFrame)
-      window.removeEventListener('scroll', scheduleScrollMotion)
-      window.removeEventListener('resize', scheduleScrollMotion)
-      driftItems.forEach((item) => {
-        item.image.style.transform = ''
-      })
-    }
   }, [])
 
   useEffect(() => {
@@ -794,7 +471,7 @@ export default function InkResonancePage() {
         <button
           type="button"
           className={styles.menuButton}
-          onClick={() => setMenuOpen((value) => !value)}
+          onClick={toggleMenu}
           aria-expanded={menuOpen}
           aria-controls="mobile-navigation"
           aria-label={menuOpen ? 'Close navigation' : 'Open navigation'}
@@ -802,15 +479,20 @@ export default function InkResonancePage() {
           {menuOpen ? <X size={22} /> : <Menu size={22} />}
         </button>
 
-        {menuOpen && (
-          <nav id="mobile-navigation" className={styles.mobileNav} aria-label="Mobile navigation">
+        {menuState !== 'closed' && (
+          <nav
+            id="mobile-navigation"
+            ref={mobileNavRef}
+            className={`${styles.mobileNav} ${menuState === 'closing' ? styles.mobileNavClosing : ''}`}
+            aria-label="Mobile navigation"
+          >
             {navItems.map((item) => (
               <a
                 href={item.href}
                 className={activeSection === item.href.slice(1) ? styles.navActive : undefined}
                 aria-current={activeSection === item.href.slice(1) ? 'page' : undefined}
                 key={item.href}
-                onClick={() => setMenuOpen(false)}
+                onClick={closeMenu}
               >
                 {item.label}
               </a>
@@ -939,8 +621,8 @@ export default function InkResonancePage() {
             </p>
           </div>
 
-          <div className={styles.practiceGrid} data-reveal="visual">
-            <article>
+          <div className={styles.practiceGrid}>
+            <article data-reveal="visual">
               <span className={styles.practiceNumber}>01 / LIVE</span>
               <Music2 size={30} />
               <h3>Performance</h3>
@@ -950,7 +632,7 @@ export default function InkResonancePage() {
               </p>
               <a href="#archive">Explore all activities <ArrowUpRight size={15} /></a>
             </article>
-            <article>
+            <article data-reveal="visual">
               <span className={styles.practiceNumber}>02 / INQUIRY</span>
               <BookOpen size={30} />
               <h3>Research</h3>
@@ -960,7 +642,7 @@ export default function InkResonancePage() {
               </p>
               <a href="#research">Current research <ArrowUpRight size={15} /></a>
             </article>
-            <article>
+            <article data-reveal="visual">
               <span className={styles.practiceNumber}>03 / TOGETHER</span>
               <Users size={30} />
               <h3>Community</h3>
@@ -1098,13 +780,14 @@ export default function InkResonancePage() {
             </p>
           </div>
 
-          <div className={styles.videoGrid} data-reveal="visual">
+          <div className={styles.videoGrid}>
             {featuredVideos.map((video, index) => (
               <a
                 key={video.id}
                 href={`https://www.youtube.com/watch?v=${video.youtubeId}`}
                 target="_blank"
                 rel="noopener noreferrer"
+                data-reveal="visual"
                 className={index === 0 ? styles.videoLead : ''}
                 aria-label={`Watch ${video.title} on YouTube (opens in a new tab)`}
               >
@@ -1143,6 +826,7 @@ export default function InkResonancePage() {
                   href={`https://www.youtube.com/watch?v=${video.youtubeId}`}
                   target="_blank"
                   rel="noopener noreferrer"
+                  data-reveal="visual"
                   aria-label={`Watch ${video.title} on YouTube (opens in a new tab)`}
                 >
                   <div className={styles.videoThumb}>
@@ -1195,7 +879,6 @@ export default function InkResonancePage() {
                 aria-hidden="true"
                 onChange={() => {
                   setActivePressId(item.id)
-                  setActivePressVideoId(null)
                 }}
                 key={`control-${item.id}`}
               />
@@ -1219,7 +902,6 @@ export default function InkResonancePage() {
                     if (event.key === 'Enter' || event.key === ' ') {
                       event.preventDefault()
                       setActivePressId(item.id)
-                      setActivePressVideoId(null)
                       return
                     }
 
@@ -1231,7 +913,6 @@ export default function InkResonancePage() {
                       : (currentIndex - 1 + pressItems.length) % pressItems.length
                     const nextItem = pressItems[nextIndex]
                     setActivePressId(nextItem.id)
-                    setActivePressVideoId(null)
                     window.requestAnimationFrame(() => {
                       document.getElementById(`press-tab-${nextItem.id}`)?.focus()
                     })
@@ -1279,8 +960,7 @@ export default function InkResonancePage() {
                           type="button"
                           className={styles.pressVideoTrigger}
                           onClick={(event) => {
-                            pressVideoTriggerRef.current = event.currentTarget
-                            setActivePressVideoId(item.id)
+                            pressVideoModalRef.current?.open(item, event.currentTarget)
                           }}
                           aria-label={`Play ${item.name} coverage video`}
                         >
@@ -1363,37 +1043,6 @@ export default function InkResonancePage() {
             </div>
           </div>
 
-          {activePressVideo ? (
-            <div
-              className={`${styles.pressVideoModal} ${styles.pressVideoModalOpen}`}
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="press-video-title"
-            >
-              <button
-                type="button"
-                className={styles.pressVideoBackdrop}
-                onClick={() => setActivePressVideoId(null)}
-                aria-label="Close video"
-              />
-              <div className={styles.pressVideoPanel}>
-                <div className={styles.pressVideoHead}>
-                  <span id="press-video-title">{activePressVideo.name} · Coverage clip</span>
-                  <button ref={pressVideoCloseRef} type="button" onClick={() => setActivePressVideoId(null)} aria-label="Close video">
-                    <X size={20} />
-                  </button>
-                </div>
-                <video
-                  autoPlay
-                  controls
-                  playsInline
-                  poster={activePressVideo.posterUrl || activePressVideo.screenshotUrl}
-                >
-                  <source src={activePressVideo.videoUrl || undefined} />
-                </video>
-              </div>
-            </div>
-          ) : null}
         </section>
 
         <section id="contact" className={styles.contact} data-chapter>
@@ -1439,97 +1088,8 @@ export default function InkResonancePage() {
         </section>
       </main>
 
-      {selectedEngagement && (
-        <div
-          className={[
-            styles.memoirModal,
-            selectedEngagementHasScrollableCopy ? mobileModalStyles.scrollableClose : '',
-            isMemoirClosing ? styles.memoirModalClosing : '',
-          ].filter(Boolean).join(' ')}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="memoir-modal-title"
-        >
-          <button
-            type="button"
-            className={styles.memoirModalBackdrop}
-            onClick={closeMemoir}
-            aria-label="Close memory"
-          />
-          <div
-            className={`${styles.memoirModalPanel} ${isMemoirClosing ? styles.memoirModalPanelClosing : ''}`}
-            onTransitionEnd={(event) => {
-              if (
-                !isMemoirClosing ||
-                event.target !== event.currentTarget ||
-                event.propertyName !== 'transform'
-              ) return
-
-              setSelectedEngagement(null)
-              setIsMemoirClosing(false)
-            }}
-          >
-            <button
-              type="button"
-              className={`${styles.memoirModalClose} ${selectedEngagementHasScrollableCopy ? mobileModalStyles.closeButton : ''}`}
-              ref={memoirCloseRef}
-              onClick={closeMemoir}
-              aria-label="Close memory"
-            >
-              <X size={19} />
-            </button>
-            <div
-              className={`${styles.memoirModalImage} ${selectedEngagementImageIsWide ? styles.memoirModalImageWide : ''} ${selectedEngagementHasScrollableCopy && selectedEngagementImageIsWide ? mobileModalStyles.clipWideImage : ''}`}
-            >
-              {selectedEngagementImageIsWide && (
-                <Image
-                  src={selectedEngagement.images[0]}
-                  alt=""
-                  aria-hidden="true"
-                  fill
-                  sizes="(max-width: 800px) 92vw, 56vw"
-                  className={styles.memoirModalImageBackdrop}
-                />
-              )}
-              <Image
-                src={selectedEngagement.images[0]}
-                alt={selectedEngagement.imageAlt ?? selectedEngagement.event}
-                fill
-                sizes="(max-width: 800px) 92vw, 56vw"
-                className={selectedEngagementImageIsWide ? styles.memoirModalImageForeground : undefined}
-              />
-            </div>
-            <div
-              className={`${styles.memoirModalCopy} ${selectedEngagementHasScrollableCopy ? mobileModalStyles.scrollableCopy : ''}`}
-            >
-              <span>
-                {formatEngagementDate(selectedEngagement.date)} · {selectedEngagement.tags.join(' · ')}
-              </span>
-              <h3 id="memoir-modal-title">{selectedEngagement.event}</h3>
-              {selectedEngagement.modalCopy && (
-                <p className={styles.memoirModalSubtitle}>{selectedEngagement.modalCopy.subtitle}</p>
-              )}
-              <p>{selectedEngagement.modalCopy?.description ?? describeEngagement(selectedEngagement.tags)}</p>
-              <small>{selectedEngagement.venue}</small>
-              {selectedEngagementResources.length > 0 && (
-                <div className={styles.memoirModalActions}>
-                  {selectedEngagementResources.map((resource) => (
-                    <a
-                      key={resource.href}
-                      href={resource.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={`${resource.label} for ${selectedEngagement.event} (opens in a new tab)`}
-                    >
-                      {resource.label} <ArrowUpRight size={15} />
-                    </a>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      <ArchiveMemoirModal ref={memoirModalRef} />
+      <PressVideoModal ref={pressVideoModalRef} />
 
       <footer className={styles.footer}>
         <a href="#home" className={styles.footerIdentity}>
