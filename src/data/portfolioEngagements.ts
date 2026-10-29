@@ -41,6 +41,10 @@ export const engagementArchive: ArchiveEngagement[] = [
         href: 'https://confucius.leeds.ac.uk/events/discover-the-guzheng-sounds-and-stories-from-china/',
       },
       {
+        label: 'View Leeds Inspired event listing',
+        href: 'https://leedsinspired.co.uk/events/discover-guzheng-sounds-and-stories-china?utm_source=chatgpt.com',
+      },
+      {
         label: 'View portrait event poster',
         href: '/images/timeline/discover-guzheng-poster-portrait-2026.png',
       },
