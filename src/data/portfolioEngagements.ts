@@ -54,9 +54,9 @@ export const engagementArchive: ArchiveEngagement[] = [
       },
     ],
     modalCopy: {
-      subtitle: 'A lunchtime introduction to China’s iconic traditional string instrument',
+      subtitle: 'A lunchtime performance and introduction to the guzheng',
       description:
-        'I introduced the guzheng’s distinctive sounds and playing techniques, sharing stories from its cultural heritage through live performance. The 1:05–2:00pm programme moved between traditional Chinese pieces, contemporary popular songs and familiar Western melodies; audiences could also see the instrument up close and ask questions. Doors opened at 12:45pm.',
+        'At Leeds City Library, I introduced the guzheng’s sound, playing techniques and cultural heritage through live performance. The 1:05–2:00pm programme brought together traditional Chinese pieces, contemporary songs and familiar Western melodies, with time for the audience to see the instrument up close and ask questions.',
     },
   },
   {
