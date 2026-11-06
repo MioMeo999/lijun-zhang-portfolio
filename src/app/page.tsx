@@ -15,7 +15,6 @@ import {
   BookOpen,
   CalendarDays,
   createLucideIcon,
-  GraduationCap,
   Mail,
   MapPin,
   Menu,
@@ -69,8 +68,23 @@ const socialProfiles = [
 const researchReportUrl =
   'https://www.healthybuildingsnetwork.org/blog/sonic-belonging.html'
 
+const sortedEngagements = [...engagementArchive].sort(
+  (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+)
+const archivePreviewItems = sortedEngagements.slice(0, 9)
+const archiveRemainingItems = sortedEngagements.slice(9)
+const archiveStart = sortedEngagements[sortedEngagements.length - 1]?.date
+const archiveEnd = sortedEngagements[0]?.date
+const archiveMonth = new Intl.DateTimeFormat('en-GB', {
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'UTC',
+})
+const archiveDateRange = archiveStart && archiveEnd
+  ? `${archiveMonth.format(new Date(archiveStart))}—${archiveMonth.format(new Date(archiveEnd))}`
+  : ''
+
 const navItems = [
-  { href: '#story', label: 'About' },
   { href: '#practice', label: 'Approach' },
   { href: '#research', label: 'Research' },
   { href: '#archive', label: 'Engagements' },
@@ -197,24 +211,19 @@ function ModernImage({
 export default function InkResonancePage() {
   const siteRef = useRef<HTMLDivElement>(null)
   const scrollProgressRef = useRef<HTMLSpanElement>(null)
+  const menuButtonRef = useRef<HTMLButtonElement>(null)
   const mobileNavRef = useRef<HTMLElement>(null)
   const menuTimerRef = useRef<number | undefined>(undefined)
   const memoirModalRef = useRef<ArchiveMemoirModalHandle>(null)
   const pressVideoModalRef = useRef<PressVideoModalHandle>(null)
   // The menu stays mounted while it leaves so its exit can play.
   const [menuState, setMenuState] = useState<'closed' | 'open' | 'closing'>('closed')
-  const [activeSection, setActiveSection] = useState('story')
+  const [activeSection, setActiveSection] = useState('')
   const [activePressId, setActivePressId] = useState(pressItems[0].id)
 
   const menuOpen = menuState === 'open'
   const featuredVideos = performanceVideos.filter((video) => video.featured)
   const additionalVideos = performanceVideos.filter((video) => !video.featured)
-  const sortedEngagements = [...engagementArchive].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-  )
-  const archivePreviewItems = sortedEngagements.slice(0, 9)
-  const archiveRemainingItems = sortedEngagements.slice(9)
-
   const openMemoir = useCallback(
     (item: (typeof engagementArchive)[number], card: HTMLElement | null, trigger?: HTMLElement | null) => {
       // The card's thumbnail is already on screen; the dialog shows it until its own photo arrives.
@@ -281,7 +290,7 @@ export default function InkResonancePage() {
             alt={item.imageAlt ?? item.event}
             fill
             sizes="(max-width: 560px) 88vw, (max-width: 800px) 48vw, (max-width: 1050px) 42vw, 31vw"
-            loading={index < 2 ? 'eager' : 'lazy'}
+            loading="lazy"
             style={{ objectPosition: archiveImagePositions[item.id] ?? 'center' }}
           />
           <span className={styles.archiveReportCue}>
@@ -319,7 +328,10 @@ export default function InkResonancePage() {
 
     const unlock = lockPageScroll()
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') closeMenu()
+      if (event.key === 'Escape') {
+        closeMenu()
+        menuButtonRef.current?.focus({ preventScroll: true })
+      }
     }
     window.addEventListener('keydown', closeOnEscape)
 
@@ -352,22 +364,32 @@ export default function InkResonancePage() {
     const root = siteRef.current
     if (!root || !('IntersectionObserver' in window)) return
 
-    const navigableSections = navItems
-      .map((item) => root.querySelector<HTMLElement>(item.href))
+    const navigableSections = [
+      ...navItems.map((item) => root.querySelector<HTMLElement>(item.href)),
+      root.querySelector<HTMLElement>('#contact'),
+    ]
       .filter((section): section is HTMLElement => Boolean(section))
 
-    const navigationObserver = new IntersectionObserver(
-      (entries) => {
-        const activeEntry = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
+    const updateActiveSection = () => {
+      const readingLine = window.innerHeight * .36
+      const bandTop = window.innerHeight * .28
+      const bandBottom = window.innerHeight * .44
+      const positions = navigableSections.map((section) => ({
+        section,
+        rect: section.getBoundingClientRect(),
+      }))
+      const current = positions.find(({ rect }) => rect.top <= readingLine && rect.bottom > readingLine)
+        ?? positions.find(({ rect }) => rect.top < bandBottom && rect.bottom > bandTop)
+      setActiveSection(current?.section.id ?? '')
+    }
 
-        if (activeEntry?.target.id) setActiveSection(activeEntry.target.id)
-      },
+    const navigationObserver = new IntersectionObserver(
+      updateActiveSection,
       { threshold: [0, 0.15, 0.35], rootMargin: '-28% 0px -56% 0px' },
     )
 
     navigableSections.forEach((section) => navigationObserver.observe(section))
+    updateActiveSection()
 
     return () => navigationObserver.disconnect()
   }, [])
@@ -456,7 +478,7 @@ export default function InkResonancePage() {
             <a
               href={item.href}
               className={activeSection === item.href.slice(1) ? styles.navActive : undefined}
-              aria-current={activeSection === item.href.slice(1) ? 'page' : undefined}
+              aria-current={activeSection === item.href.slice(1) ? 'location' : undefined}
               key={item.href}
             >
               {item.label}
@@ -464,11 +486,16 @@ export default function InkResonancePage() {
           ))}
         </nav>
 
-        <a href="#contact" className={styles.headerCta}>
+        <a
+          href="#contact"
+          className={styles.headerCta}
+          aria-current={activeSection === 'contact' ? 'location' : undefined}
+        >
           Collaborate <ArrowUpRight size={15} />
         </a>
 
         <button
+          ref={menuButtonRef}
           type="button"
           className={styles.menuButton}
           onClick={toggleMenu}
@@ -490,13 +517,21 @@ export default function InkResonancePage() {
               <a
                 href={item.href}
                 className={activeSection === item.href.slice(1) ? styles.navActive : undefined}
-                aria-current={activeSection === item.href.slice(1) ? 'page' : undefined}
+                aria-current={activeSection === item.href.slice(1) ? 'location' : undefined}
                 key={item.href}
                 onClick={closeMenu}
               >
                 {item.label}
               </a>
             ))}
+            <a
+              href="#contact"
+              className={activeSection === 'contact' ? styles.navActive : undefined}
+              aria-current={activeSection === 'contact' ? 'location' : undefined}
+              onClick={closeMenu}
+            >
+              Collaborate
+            </a>
           </nav>
         )}
       </header>
@@ -525,7 +560,7 @@ export default function InkResonancePage() {
               </div>
             </div>
             <div className={styles.heroActions}>
-              <a href="#archive">Twenty-six rooms</a>
+              <a href="#archive">{engagementArchive.length} rooms</a>
               <a href="#videos"><Play size={11} fill="currentColor" /> Listen</a>
             </div>
           </div>
@@ -546,7 +581,7 @@ export default function InkResonancePage() {
             <span>Portfolio · 2026 — Listen · Meet · Resonate</span>
           </div>
 
-          <a href="#story" className={styles.scrollCue}>Explore <ArrowDown size={16} /></a>
+          <a href="#practice" className={styles.scrollCue}>Explore <ArrowDown size={16} /></a>
         </section>
 
         <div className={styles.affiliations} aria-label="Selected media and institutional associations">
@@ -559,56 +594,10 @@ export default function InkResonancePage() {
           <a href="#research">Healthy Buildings Network</a>
         </div>
 
-        <section id="story" className={styles.story} data-chapter>
-          <div
-            className={styles.storyBackdrop}
-            aria-hidden="true"
-            data-reveal="visual"
-            data-scroll-media
-            data-scroll-strength="22"
-          >
-            <Image
-              src="/images/bg-home.jpg"
-              alt=""
-              fill
-              sizes="100vw"
-              loading="lazy"
-            />
-          </div>
-          <div className={styles.sectionMarker} data-reveal="marker">
-            <span>01</span>
-            <p>POSITION / STORY</p>
-          </div>
-          <div className={styles.storyHeadline} data-reveal="heading">
-            <span data-reveal-line>My practice</span>
-            <h2 data-reveal-line>Music is not an object to preserve.</h2>
-            <h2 data-reveal-line><em>It is a place to meet.</em></h2>
-          </div>
-          <div className={styles.storyBody} data-reveal="copy">
-            <p>
-              Lijun Zhang is a musician and cultural connector based in the
-              United Kingdom. Through the Guzheng, he creates opportunities for
-              people from different backgrounds to meet, learn, and connect
-              through shared musical experiences.
-            </p>
-            <p>
-              Alongside his artistic practice, Lijun is pursuing a PhD at the
-              University of Leeds. His work moves between performance,
-              education, community engagement, artistic collaboration, and
-              research into belonging and inclusive shared space.
-            </p>
-            <div className={styles.storyMeta}>
-              <span><MapPin size={15} /> Leeds, UK</span>
-              <span><GraduationCap size={15} /> University of Leeds</span>
-              <span><Music2 size={15} /> Guzheng</span>
-            </div>
-          </div>
-        </section>
-
         <section id="practice" className={styles.practice} data-chapter>
-          <div className={styles.practiceIntro}>
+          <div id="story" className={styles.practiceIntro}>
             <div className={styles.sectionMarkerLight} data-reveal="marker">
-              <span>02</span>
+              <span>01</span>
               <p>ARTISTIC PRACTICE</p>
             </div>
             <h2 data-reveal="heading">
@@ -684,7 +673,7 @@ export default function InkResonancePage() {
 
           <div className={styles.researchCopy}>
             <div className={styles.researchLabel} data-reveal="marker">
-              <span>03</span>
+              <span>02</span>
               <p>FEATURED RESEARCH</p>
             </div>
             <h2 data-reveal="heading">
@@ -725,7 +714,7 @@ export default function InkResonancePage() {
         <section id="archive" className={styles.archive} data-chapter>
           <div className={styles.archiveHead}>
             <div className={styles.sectionMarker} data-reveal="marker">
-              <span>04</span>
+              <span>03</span>
               <p>ACTIVITY ARCHIVE</p>
             </div>
             <h2 data-reveal="heading">
@@ -754,7 +743,7 @@ export default function InkResonancePage() {
           </details>
           <div className={styles.archiveFooter}>
             <p className={styles.archiveCount}>
-              {engagementArchive.length} engagements · February 2024—September 2026
+              {engagementArchive.length} engagements{archiveDateRange ? ` · ${archiveDateRange}` : ''}
             </p>
             <p>Performance · Workshops · Community</p>
           </div>
@@ -763,7 +752,7 @@ export default function InkResonancePage() {
         <section id="videos" className={styles.videos} data-chapter>
           <div className={styles.videosHead}>
             <div className={styles.sectionMarkerLight} data-reveal="marker">
-              <span>05</span>
+              <span>04</span>
               <p>PERFORMANCE VIDEOS</p>
             </div>
             <div data-reveal="heading">
@@ -1047,7 +1036,7 @@ export default function InkResonancePage() {
 
         <section id="contact" className={styles.contact} data-chapter>
           <div className={styles.contactTopline} data-reveal="marker">
-            <span>07 / CONTACT</span>
+            <span>06 / CONTACT</span>
             <span>Performance · Research · Education · Collaboration</span>
           </div>
           <h2 data-reveal="heading">

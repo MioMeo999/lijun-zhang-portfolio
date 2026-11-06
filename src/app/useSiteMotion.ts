@@ -224,7 +224,24 @@ function useAnchorScroll(
       if (!targetId || targetId.startsWith('qr-')) return
 
       const target = document.getElementById(targetId)
-      if (!target || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+      if (!target) return
+
+      // Custom scrolling otherwise leaves keyboard focus at the navigation link.
+      const focusDestination = () => {
+        const destination = target.querySelector<HTMLElement>('h1, h2') ?? target
+        if (!destination.hasAttribute('tabindex')) {
+          destination.setAttribute('tabindex', '-1')
+          destination.addEventListener('blur', () => destination.removeAttribute('tabindex'), { once: true })
+        }
+        destination.focus({ preventScroll: true })
+      }
+
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        if (event.detail === 0) window.requestAnimationFrame(focusDestination)
+        return
+      }
+
+      if (event.detail === 0) focusDestination()
 
       event.preventDefault()
       stopScrollAnimation()

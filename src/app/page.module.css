@@ -23,8 +23,12 @@
   text-decoration: none;
 }
 
+.site :is(h1, h2)[tabindex='-1']:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 6px;
+}
+
 .hero,
-.story,
 .practice,
 .research,
 .archive,
@@ -405,15 +409,6 @@
   letter-spacing: .15em;
 }
 
-.story {
-  display: grid;
-  min-height: 700px;
-  grid-template-columns: .28fr 1.35fr .8fr;
-  gap: 5vw;
-  padding: 9vw 5vw;
-  background: var(--paper);
-}
-
 .sectionMarker,
 .sectionMarkerLight {
   display: flex;
@@ -441,60 +436,6 @@
   white-space: nowrap;
 }
 
-.storyHeadline > span {
-  color: var(--red);
-  font-size: 0.6875rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .17em;
-}
-
-.storyHeadline h2 {
-  margin: 27px 0 0;
-  font-family: var(--font-display, Georgia), Georgia, serif;
-  font-size: clamp(3rem, 5.2vw, 5.125rem);
-  font-weight: 400;
-  line-height: .96;
-  letter-spacing: -.045em;
-}
-
-.storyHeadline h2 em {
-  color: var(--red);
-  font-weight: 400;
-}
-
-.storyBody {
-  align-self: end;
-}
-
-.storyBody > p {
-  margin: 0 0 20px;
-  font-size: 0.75rem;
-  line-height: 1.85;
-}
-
-.storyMeta {
-  display: grid;
-  gap: 11px;
-  margin-top: 35px;
-  border-top: 1px solid rgba(16, 20, 22, .2);
-  padding-top: 25px;
-}
-
-.storyMeta span {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .1em;
-}
-
-.storyMeta svg {
-  color: var(--red);
-}
-
 .practice {
   display: grid;
   grid-template-columns: .83fr 1.7fr;
@@ -506,6 +447,7 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  scroll-margin-top: 104px;
   border-right: 1px solid rgba(255, 255, 255, .17);
   padding: 6vw 5vw;
 }
@@ -1601,7 +1543,6 @@
   color: var(--ink);
 }
 
-.story,
 .practice,
 .research,
 .archive,
@@ -2784,7 +2725,6 @@
   opacity: .82;
 }
 
-.storyBody > p,
 .practiceIntro > p,
 .practiceGrid article > p,
 .researchCopy > p,
@@ -2795,44 +2735,11 @@
   line-height: 1.78;
 }
 
-/* Section harmony and interaction pass */
-.story {
-  position: relative;
-  isolation: isolate;
-}
-
-.storyBackdrop {
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  overflow: hidden;
-}
-
-.storyBackdrop::after {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(ellipse at 32% 58%, rgba(244, 239, 231, .08) 0 20%, rgba(244, 239, 231, .5) 55%, rgba(244, 239, 231, .84) 100%),
-    linear-gradient(90deg, rgba(244, 239, 231, .72), rgba(244, 239, 231, .32) 42%, rgba(244, 239, 231, .75)),
-    linear-gradient(180deg, rgba(244, 239, 231, .66), transparent 36%, rgba(244, 239, 231, .78));
-  content: '';
-}
-
-.storyBackdrop img {
-  object-fit: cover;
-  object-position: 28% 58%;
-  filter: grayscale(.82) contrast(1.13) brightness(.78);
-  opacity: .58;
-}
-
-.storyHeadline,
-.storyBody,
 .sectionMarker {
   position: relative;
   z-index: 1;
 }
 
-.storyHeadline h2,
 .practiceIntro h2,
 .researchCopy h2,
 .archiveHead h2,
@@ -2841,11 +2748,6 @@
 .contact h2 {
   font-weight: 400;
   letter-spacing: -.025em;
-}
-
-.storyBody > p {
-  color: #3f3932;
-  text-shadow: 0 1px 18px rgba(244, 239, 231, .8);
 }
 
 .researchPoster {
@@ -3197,7 +3099,6 @@
 }
 
 .site :where(
-  .storyBody,
   .practiceIntro > p,
   .practiceGrid article > p,
   .researchCopy > p,
@@ -3493,7 +3394,6 @@
   font-size: 0.6875rem;
 }
 
-.storyBody > p,
 .practiceIntro > p,
 .practiceGrid article > p,
 .archiveHead > p,
@@ -4273,11 +4173,6 @@
     left: 15% !important;
     width: 70% !important;
   }
-  .storyBackdrop img {
-    object-position: 62% center;
-    opacity: .24;
-  }
-
   .researchPoster {
     transform: none;
   }
@@ -4299,10 +4194,6 @@
     font-size: 0.6875rem;
     line-height: 1.5;
   }
-  .storyBackdrop img {
-    object-position: 34% center;
-  }
-
   .researchDiagram {
     border-left: 0;
     padding-left: 0;
@@ -4351,7 +4242,6 @@
   }
 
   .hero,
-  .story,
   .practice,
   .research,
   .archive,
@@ -4445,16 +4335,6 @@
 
   .heroSideNote {
     display: none;
-  }
-
-  .story {
-    grid-template-columns: 1fr;
-    gap: 55px;
-    padding: 90px 24px;
-  }
-
-  .storyHeadline h2 {
-    font-size: 3.1875rem;
   }
 
   .practiceIntro {
@@ -4682,7 +4562,6 @@
     font-size: clamp(2.375rem, 12vw, 3.375rem);
   }
 
-  .storyBody > p,
   .practiceIntro > p,
   .practiceGrid article > p,
   .researchCopy > p,
@@ -4895,17 +4774,6 @@
     padding-inline: 1px;
   }
 
-  .story {
-    gap: 42px;
-    padding: 78px 22px 82px;
-  }
-
-  .storyHeadline h2 {
-    font-size: clamp(2.6875rem, 12.5vw, 3.5rem);
-    line-height: .96;
-  }
-
-  .storyBody > p,
   .practiceIntro > p,
   .practiceGrid article > p,
   .researchCopy > p,
@@ -4914,11 +4782,6 @@
   .mediaHead > p {
     font-size: 0.9375rem;
     line-height: 1.72;
-  }
-
-  .storyMeta {
-    margin-top: 28px;
-    padding-top: 20px;
   }
 
   .practiceIntro {
@@ -5637,8 +5500,8 @@
  */
 .site {
   /* Entrance scale. One base, one longer step for large media. */
-  --enter: .72s;
-  --enter-lg: .92s;
+  --enter: .64s;
+  --enter-lg: .78s;
   --step: 70ms;
 
   /* Response scale — all well under the 300ms perceived-lag threshold. */
@@ -5649,8 +5512,8 @@
 
   /* Travel and the blur that masks the crossfade. */
   --rise: .5em;
-  --rise-media: 20px;
-  --enter-blur: 5px;
+  --rise-media: 16px;
+  --enter-blur: 4px;
 
   /*
    * Dialogs share one gesture. The panel and the scrim use a single duration and
@@ -5956,7 +5819,6 @@
     transform var(--hover-slow) var(--ease-out);
 }
 
-.storyHeadline h2,
 .practiceIntro h2,
 .researchCopy h2,
 .archiveHead h2,
