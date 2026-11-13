@@ -22,6 +22,40 @@ export type ArchiveEngagement = Omit<Performance, 'description' | 'link'> & {
 
 export const engagementArchive: ArchiveEngagement[] = [
   {
+    id: 'echoes-of-the-steppe-2026',
+    date: '2026-11-12',
+    venue: 'Leeds City Library, Music Library (1st Floor)',
+    event: 'Echoes of the Steppe',
+    tags: ['performance', 'community'],
+    images: ['/images/timeline/echoes-of-the-steppe-2026.jpg'],
+    imageAlt: 'Lijun Zhang speaking beside a guzheng and a screen showing galloping horses.',
+    link: 'https://leedscityoflanguages.leeds.ac.uk/events/concert-echoes-of-the-steppe-a-journey-through-mongolian-music-dance-and-living-heritage/',
+    linkLabel: 'View Leeds City of Languages event page',
+    externalResources: [
+      {
+        label: 'View Leeds Inspired event listing',
+        href: 'https://leedsinspired.co.uk/events/echoes-steppe-journey-through-mongolian-music-dance-and-living-heritage',
+      },
+      {
+        label: 'View Visit Leeds event listing',
+        href: 'https://www.visitleeds.co.uk/whats-on/all-events/echoes-of-the-steppe-a-journey-through-mongolian-music-dance-and-living-heritage-2026-11-12/',
+      },
+      {
+        label: 'View Instagram post',
+        href: 'https://www.instagram.com/p/DfVNxDSOcom/',
+      },
+      {
+        label: 'View TicketSource event page',
+        href: 'https://www.ticketsource.com/leedslibraryevents/t-oezeoly',
+      },
+    ],
+    modalCopy: {
+      subtitle: 'A journey through Mongolian music, dance and living heritage',
+      description:
+        'I coordinated the event and performed on guzheng at Leeds City Library during the Leeds City of Languages Festival. Across four chapters, performers and cultural presenters shared morin khuur, Mongolian song, dance and stories from the Jangar epic, alongside collaborations with guzheng and piano. The event was presented with Leeds Libraries and the Business Confucius Institute.',
+    },
+  },
+  {
     id: 'discover-the-guzheng-leeds-2026',
     date: '2026-10-15',
     venue: 'Leeds City Library, Music Library (1st Floor)',

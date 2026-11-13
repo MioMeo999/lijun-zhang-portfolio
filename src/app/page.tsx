@@ -130,6 +130,7 @@ const pressLogoStyle = (width: number): CSSProperties & { '--press-logo-width': 
 })
 
 const portraitArchiveImages = new Set([
+  '/images/timeline/echoes-of-the-steppe-2026.jpg',
   '/images/timeline/discover-guzheng-performance-2026.jpg',
   '/images/timeline/wu-fest-acoustic-2025.jpg',
   '/images/timeline/harrogate-grammar-school-2025.jpg',
