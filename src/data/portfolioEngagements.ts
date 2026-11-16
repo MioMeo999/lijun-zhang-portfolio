@@ -46,7 +46,7 @@ export const engagementArchive: ArchiveEngagement[] = [
       },
       {
         label: 'View TicketSource event page',
-        href: 'https://www.ticketsource.com/leedslibraryevents/t-oezeoly',
+        href: 'https://www.ticketsource.com/leedslibraryevents/echoes-of-the-steppe-a-journey-through-mongolian-music-dance-and-living-heritage/e-mgrgpjj?utm_source=chatgpt.com',
       },
     ],
     modalCopy: {
