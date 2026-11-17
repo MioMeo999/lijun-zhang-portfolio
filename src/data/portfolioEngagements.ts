@@ -33,6 +33,10 @@ export const engagementArchive: ArchiveEngagement[] = [
     linkLabel: 'View Leeds City of Languages event page',
     externalResources: [
       {
+        label: 'Read Business Confucius Institute report',
+        href: 'https://confucius.leeds.ac.uk/news/mongolian-heritage-takes-centre-stage-at-leeds-city-of-languages-festival/',
+      },
+      {
         label: 'View Leeds Inspired event listing',
         href: 'https://leedsinspired.co.uk/events/echoes-steppe-journey-through-mongolian-music-dance-and-living-heritage',
       },
