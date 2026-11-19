@@ -83,6 +83,10 @@ export const engagementArchive: ArchiveEngagement[] = [
         href: 'https://leedsinspired.co.uk/events/discover-guzheng-sounds-and-stories-china?utm_source=chatgpt.com',
       },
       {
+        label: 'Watch Manchester Consulate Rednote feature',
+        href: 'https://www.rednote.com/discovery/item/6af6faf8000000001003554c?app_platform=harmony&app_version=9.52.2&share_from_user_hidden=true&xsec_source=app_share&type=video&xsec_token=CBon5Xk7vIWcWsj-F2VcScJnY0RWZNqwZyLryuXxkTxgM=&author_share=1&share_id=d8692cf305554a9daa85d8cad344f811&track_code=3drRbKrEFSv&apptime=1794572665&xhsshare=WeixinSession',
+      },
+      {
         label: 'View portrait event poster',
         href: '/images/timeline/discover-guzheng-poster-portrait-2026.png',
       },
