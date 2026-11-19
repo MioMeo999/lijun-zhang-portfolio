@@ -488,6 +488,12 @@ export const engagementArchive: ArchiveEngagement[] = [
     images: ['/images/timeline/leeds-business-chinese-new-year-2024.jpg'],
     link: 'https://confucius.leeds.ac.uk/news/leeds-university-celebrates-the-year-of-the-snake-in-style/',
     linkLabel: 'Read Business Confucius Institute report',
+    externalResources: [
+      {
+        label: 'Read UIBE 2025 Spring Festival series report',
+        href: 'https://news.uibe.edu.cn/info/1365/96198.htm',
+      },
+    ],
     modalCopy: {
       subtitle: 'Welcoming the Year of the Snake at Leeds University Business School',
       description:
@@ -496,13 +502,19 @@ export const engagementArchive: ArchiveEngagement[] = [
   },
   {
     id: '15',
-    date: '2025-01-29',
+    date: '2025-02-06',
     venue: 'Harrogate Grammar School',
     event: 'Chinese New Year Workshop & Performance',
     tags: ['workshop', 'performance'],
     images: ['/images/timeline/harrogate-grammar-school-2025.jpg'],
     link: 'https://confucius.leeds.ac.uk/news/chinese-new-year-festivities-light-up-harrogate-grammar-school/',
     linkLabel: 'Read Business Confucius Institute report',
+    externalResources: [
+      {
+        label: 'Read UIBE 2025 Spring Festival series report',
+        href: 'https://news.uibe.edu.cn/info/1365/96198.htm',
+      },
+    ],
     modalCopy: {
       subtitle: 'A guzheng performance for Harrogate Grammar School',
       description:
